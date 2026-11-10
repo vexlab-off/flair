@@ -4,7 +4,7 @@ pkgrel=1
 pkgdesc='File explorer that summarizes, finds by meaning, sorts and answers with AI'
 arch=('x86_64' 'aarch64')
 license=('MIT')
-depends=('qt6-base' 'qt6-declarative' 'qt6-wayland' 'git')
+depends=('qt6-base' 'qt6-declarative' 'qt6-shapes' 'qt6-wayland' 'git')
 optdepends=('poppler: résumer et indexer les PDF'
             'github-cli: cloner avec gh'
             'ollama: modèle IA local')

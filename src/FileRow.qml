@@ -12,60 +12,70 @@ Rectangle {
     required property string kind
     required property string git
     property bool current: false
+    property bool focused: false
 
     signal clicked()
     signal doubleClicked()
 
-    height: 30
-    radius: 6
-    color: current ? Qt.rgba(1, 1, 1, 0.08) : (mouse.containsMouse ? Qt.rgba(1, 1, 1, 0.04) : "transparent")
+    readonly property var iconFor: ({ dossier: "folder", autre: "file" })
+    readonly property color gitColor: git === "M" || git === "R" ? theme.warning
+                                    : git === "A" ? theme.success
+                                    : git === "D" ? theme.danger
+                                    : git === "•" ? theme.highlight : theme.textFaint
 
-    Rectangle {
-        visible: row.current
-        width: 3
-        height: parent.height - 10
-        radius: 2
-        anchors.verticalCenter: parent.verticalCenter
-        color: theme.accent
-    }
+    height: 34
+    radius: 7
+    color: current ? theme.alpha(theme.highlight, focused ? 0.16 : 0.08)
+                   : (mouse.containsMouse ? theme.alpha(theme.text, 0.035) : "transparent")
 
     RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: 10
-        anchors.rightMargin: 12
-        spacing: 10
+        anchors.leftMargin: 12
+        anchors.rightMargin: 14
+        spacing: 12
 
-        KindBadge { kind: row.kind }
-
+        Icon {
+            name: row.iconFor[row.kind] || row.kind
+            color: theme.kindColor(row.kind)
+            size: 17
+        }
         Text {
             Layout.fillWidth: true
             text: row.name
-            color: row.isDir ? "#f2f2f5" : "#d0d0d6"
+            color: row.current ? theme.text : (row.isDir ? theme.text : Qt.tint(theme.text, theme.alpha(theme.background, 0.15)))
             font.pixelSize: 13
-            font.bold: row.isDir
+            font.weight: row.isDir ? Font.DemiBold : Font.Normal
             elide: Text.ElideMiddle
         }
-        Text {
+        Rectangle {
             visible: row.git !== ""
-            text: row.git
-            color: row.git === "?" ? "#7a7a85" : theme.accent
-            font.pixelSize: 12
-            font.family: "monospace"
-            font.bold: true
+            Layout.preferredWidth: 18
+            Layout.preferredHeight: 16
+            radius: 4
+            color: theme.alpha(row.gitColor, 0.14)
+            Text {
+                anchors.centerIn: parent
+                text: row.git
+                color: row.gitColor
+                font.pixelSize: 10
+                font.weight: Font.Bold
+            }
         }
         Text {
-            Layout.preferredWidth: 70
+            Layout.preferredWidth: 76
             horizontalAlignment: Text.AlignRight
             text: row.size
-            color: "#7a7a85"
+            color: theme.textDim
             font.pixelSize: 12
+            font.features: { "tnum": 1 }
         }
         Text {
-            Layout.preferredWidth: 130
+            Layout.preferredWidth: 128
             horizontalAlignment: Text.AlignRight
             text: row.modified
-            color: "#5e5e68"
+            color: theme.textFaint
             font.pixelSize: 12
+            font.features: { "tnum": 1 }
         }
     }
 

@@ -9,6 +9,7 @@
 class AiClient;
 class FileModel;
 class GitInfo;
+class GitHubRepos;
 class Indexer;
 class Settings;
 
@@ -19,6 +20,10 @@ class Backend : public QObject {
     Q_OBJECT
     Q_PROPERTY(QString currentPath READ currentPath NOTIFY currentPathChanged)
     Q_PROPERTY(QString panel READ panel WRITE setPanel NOTIFY panelChanged)
+    // "files" or "github": what the middle column shows.
+    Q_PROPERTY(QString view READ view NOTIFY viewChanged)
+    Q_PROPERTY(QVariantList places READ places CONSTANT)
+    Q_PROPERTY(QStringList breadcrumb READ breadcrumb NOTIFY currentPathChanged)
     Q_PROPERTY(QString status READ status NOTIFY statusChanged)
     Q_PROPERTY(QString error READ error NOTIFY statusChanged)
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
@@ -48,10 +53,14 @@ class Backend : public QObject {
 
 public:
     Backend(Settings *settings, AiClient *ai, FileModel *files, GitInfo *git, Indexer *indexer,
-            QObject *parent = nullptr);
+            GitHubRepos *github, QObject *parent = nullptr);
 
     QString currentPath() const;
     QString panel() const { return m_panel; }
+    QString view() const { return m_view; }
+    QVariantList places() const;
+    // Absolute path of each level of the current folder, root first.
+    QStringList breadcrumb() const;
     void setPanel(const QString &panel);
     QString status() const { return m_status; }
     QString error() const { return m_error; }
@@ -103,6 +112,12 @@ public:
     // GitHub
     Q_INVOKABLE void openOnWeb();
     Q_INVOKABLE void clone(const QString &repository);
+    Q_INVOKABLE void showGitHub();
+    Q_INVOKABLE void showFiles();
+    // Opens a repository's local clone, cloning it first when there is none.
+    Q_INVOKABLE void activateRepo(int row);
+    Q_INVOKABLE void summarizeRepo(int row);
+    Q_INVOKABLE void openRepoOnWeb(int row);
 
     Q_INVOKABLE void probeEngines();
     Q_INVOKABLE void clearError();
@@ -113,6 +128,7 @@ public:
 signals:
     void currentPathChanged();
     void panelChanged();
+    void viewChanged();
     void statusChanged();
     void busyChanged();
     void previewChanged();
@@ -136,12 +152,17 @@ private:
     void end();
     void requestPlan(const QString &request, const QString &instructions);
     void sendChat(const QString &context);
+    void setView(const QString &view);
+    void cloneInto(const QString &repository, const QString &parent, bool open);
+    void summarizeText(const QString &title, const QString &meta, const QString &prompt);
 
     Settings *m_settings;
     AiClient *m_ai;
     FileModel *m_files;
     GitInfo *m_git;
     Indexer *m_indexer;
+    GitHubRepos *m_github;
+    QString m_view = "files";
 
     QString m_panel = "preview";
     QString m_status;

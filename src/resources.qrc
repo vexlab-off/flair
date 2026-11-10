@@ -1,10 +1,14 @@
 <RCC>
     <qresource prefix="/">
         <file alias="Main.qml">Main.qml</file>
+        <file alias="Sidebar.qml">Sidebar.qml</file>
         <file alias="FileRow.qml">FileRow.qml</file>
+        <file alias="RepoRow.qml">RepoRow.qml</file>
         <file alias="SidePanel.qml">SidePanel.qml</file>
         <file alias="HelpOverlay.qml">HelpOverlay.qml</file>
         <file alias="SettingsDialog.qml">SettingsDialog.qml</file>
-        <file alias="KindBadge.qml">KindBadge.qml</file>
+        <file alias="Icon.qml">Icon.qml</file>
+        <file alias="Logo.qml">Logo.qml</file>
+        <file alias="Keycap.qml">Keycap.qml</file>
     </qresource>
 </RCC>

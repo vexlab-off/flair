@@ -1,7 +1,6 @@
 // Theme watching follows Korcut (MIT, David Heinemeier Hansson).
 #include "theme.h"
 
-#include <QColor>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -20,23 +19,107 @@ Theme::Theme(const QString &directory, QObject *parent)
 }
 
 QString Theme::readAccent(const QString &path) {
-    QFile file(path);
-    if (file.open(QIODevice::ReadOnly)) {
-        const QRegularExpression expression(R"re(^\s*accent\s*=\s*["'](#[0-9a-fA-F]{6})["'])re",
-                                            QRegularExpression::MultilineOption);
-        const auto match = expression.match(QString::fromUtf8(file.readAll()));
-        if (match.hasMatch())
-            return match.captured(1);
-    }
-    return "#FFD60A";
+    const auto colors = readColors(path);
+    return colors.contains("accent") ? colors.value("accent").name() : QString("#FFD60A");
 }
 
-// Black or white, whichever reads on the accent (WCAG relative luminance).
+QHash<QString, QColor> Theme::readColors(const QString &path) {
+    QHash<QString, QColor> colors;
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly))
+        return colors;
+    static const QRegularExpression line(R"re(^\s*([a-z_]+)\s*=\s*["'](#[0-9a-fA-F]{6})["'])re",
+                                         QRegularExpression::MultilineOption);
+    auto it = line.globalMatch(QString::fromUtf8(file.readAll()));
+    while (it.hasNext()) {
+        const auto match = it.next();
+        colors.insert(match.captured(1), QColor(match.captured(2)));
+    }
+    return colors;
+}
+
+QColor Theme::mix(const QColor &a, const QColor &b, double t) {
+    return QColor::fromRgbF(float(a.redF() + (b.redF() - a.redF()) * t), float(a.greenF() + (b.greenF() - a.greenF()) * t),
+                            float(a.blueF() + (b.blueF() - a.blueF()) * t));
+}
+
+QColor Theme::mostVivid(const QHash<QString, QColor> &colors, const QColor &fallback) {
+    // Prefer the cool hues a file manager's selection usually wears, then
+    // anything else, judged by HSL saturation weighted by usable lightness.
+    static const QStringList order{"bright_blue", "blue", "bright_cyan", "cyan", "bright_magenta", "magenta",
+                                   "bright_green", "green"};
+    QColor best = fallback;
+    double bestScore = 0;
+    for (int i = 0; i < order.size(); ++i) {
+        const auto c = colors.value(order[i]);
+        if (!c.isValid())
+            continue;
+        const double l = c.lightnessF();
+        const double score = c.hslSaturationF() * (1 - std::abs(l - 0.6)) - i * 0.01;
+        if (score > bestScore) {
+            bestScore = score;
+            best = c;
+        }
+    }
+    return best;
+}
+
 QString Theme::accentForeground() const {
     const QColor c(m_accent);
     auto linear = [](double v) { return v <= .04045 ? v / 12.92 : std::pow((v + .055) / 1.055, 2.4); };
     const double luminance = .2126 * linear(c.redF()) + .7152 * linear(c.greenF()) + .0722 * linear(c.blueF());
     return luminance > .179 ? "black" : "white";
+}
+
+QColor Theme::highlight() const {
+    const QColor accent(m_accent);
+    if (accent.hslSaturationF() >= 0.3)
+        return accent;
+    return mostVivid(m_colors, accent);
+}
+
+QColor Theme::highlightText() const {
+    const QColor c = highlight();
+    auto linear = [](double v) { return v <= .04045 ? v / 12.92 : std::pow((v + .055) / 1.055, 2.4); };
+    const double luminance = .2126 * linear(c.redF()) + .7152 * linear(c.greenF()) + .0722 * linear(c.blueF());
+    return luminance > .179 ? QColor("#0b0b0d") : QColor("#ffffff");
+}
+
+QColor Theme::kindColor(const QString &kind) const {
+    if (kind == "dossier")
+        return highlight();
+    if (kind == "image")
+        return color("bright_magenta", color("magenta", "#c792ea"));
+    if (kind == "video")
+        return color("bright_red", color("red", "#f07178"));
+    if (kind == "audio")
+        return color("bright_yellow", color("yellow", "#ffcb6b"));
+    if (kind == "code")
+        return color("bright_cyan", color("cyan", "#89ddff"));
+    if (kind == "document" || kind == "presentation" || kind == "tableur")
+        return color("bright_blue", color("blue", "#82aaff"));
+    if (kind == "archive")
+        return color("orange", color("yellow", "#f78c6c"));
+    if (kind == "installeur")
+        return color("bright_green", color("green", "#c3e88d"));
+    return textDim();
+}
+
+QColor Theme::languageColor(const QString &language) const {
+    static const QHash<QString, QString> keys{
+        {"C++", "blue"},        {"C", "blue"},          {"Rust", "orange"},   {"Go", "cyan"},
+        {"Python", "yellow"},   {"JavaScript", "yellow"}, {"TypeScript", "blue"}, {"Shell", "green"},
+        {"QML", "green"},       {"Lua", "blue"},        {"HTML", "red"},      {"CSS", "magenta"},
+        {"Dart", "cyan"},       {"Java", "orange"},     {"Kotlin", "magenta"}, {"Ruby", "red"},
+        {"PHP", "magenta"},     {"Nix", "blue"},        {"Vue", "green"},     {"Svelte", "orange"}};
+    const auto key = keys.value(language);
+    return key.isEmpty() ? textFaint() : color("bright_" + key, color(key, textDim()));
+}
+
+QColor Theme::alpha(const QColor &c, double opacity) const {
+    QColor out = c;
+    out.setAlphaF(float(opacity));
+    return out;
 }
 
 void Theme::reload() {
@@ -57,9 +140,11 @@ void Theme::reload() {
         if (QFileInfo::exists(path))
             m_watcher.addPath(path);
 
-    const auto accent = readAccent(m_directory + "/theme/colors.toml");
-    if (accent != m_accent) {
+    const auto colors = readColors(m_directory + "/theme/colors.toml");
+    const QString accent = colors.contains("accent") ? colors.value("accent").name() : QString("#FFD60A");
+    if (accent.compare(m_accent, Qt::CaseInsensitive) != 0 || colors != m_colors) {
         m_accent = accent;
+        m_colors = colors;
         emit changed();
     }
 }

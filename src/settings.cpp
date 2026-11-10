@@ -53,3 +53,15 @@ void Settings::setClaudeModel(const QString &v) { put("claude/model", v.trimmed(
 void Settings::setAnthropicKey(const QString &v) { put("claude/apiKey", v.trimmed()); }
 void Settings::setSummaryEngine(const QString &v) { put("routing/summary", v == "claude" ? "claude" : "local"); }
 void Settings::setHeavyEngine(const QString &v) { put("routing/heavy", v == "local" ? "local" : "claude"); }
+
+QString Settings::cloneDirectory() const {
+    const auto work = QDir::homePath() + "/Work";
+    return get("github/cloneDirectory", QFileInfo(work).isDir() ? work : QDir::homePath());
+}
+
+void Settings::setCloneDirectory(const QString &v) {
+    auto path = v.trimmed();
+    if (path.startsWith("~"))
+        path = QDir::homePath() + path.mid(1);
+    put("github/cloneDirectory", path);
+}

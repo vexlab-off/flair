@@ -13,9 +13,14 @@ entièrement au clavier.
   intelligent à l'IA.
 - **Chat avec un dossier** : `C` pose des questions ; avec un index, les fichiers
   pertinents sont lus pour répondre.
-- **Git et GitHub** : statut des fichiers dans la liste, `D` explique les changements en
-  cours et propose un message de commit, `G` ouvre le dépôt sur GitHub, Ctrl+G clone un
-  dépôt ici.
+- **Dossier GitHub** : dans la barre latérale (ou Ctrl+G), tes dépôts GitHub s'affichent
+  comme un dossier. Ceux déjà clonés sur la machine sont reconnus ; Entrée ouvre le clone,
+  ou clone le dépôt dans `~/Work` (réglable) puis l'ouvre. Espace résume le README.
+- **Git** : statut des fichiers dans la liste, `D` explique les changements en cours et
+  propose un message de commit, `G` ouvre le dépôt sur GitHub.
+
+L'interface suit toute la palette du thème Vex en direct. Quand l'accent du thème est
+presque gris, la sélection prend la couleur la plus vive de la palette.
 
 ## Sécurité des fichiers
 
@@ -61,12 +66,16 @@ Si un moteur manque, la fenêtre le dit et explique quoi faire.
 | Échap | Fermer, abandonner le plan, arrêter l'IA |
 | D | Expliquer les changements Git |
 | G | Ouvrir le dépôt sur GitHub |
-| Ctrl+G | Cloner un dépôt GitHub |
+| Ctrl+G | Dossier GitHub (et retour) |
+| R | Recharger les dépôts (dossier GitHub) |
+| Ctrl+Maj+G | Cloner un dépôt par son nom |
 | Ctrl+Z / Ctrl+Maj+Z | Annuler / rétablir |
 | 1 2 3 4 | Aperçu, recherche, chat, plan |
 | Ctrl+, | Réglages |
 | ? | Aide |
 | Q | Quitter |
+
+Le dossier GitHub utilise l'outil `gh` (`gh auth login` une fois).
 
 ## Développement
 

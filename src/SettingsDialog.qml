@@ -11,6 +11,7 @@ Dialog {
     anchors.centerIn: parent
     width: Math.min(parent.width - 80, 620)
     standardButtons: Dialog.Save | Dialog.Cancel
+    background: Rectangle { color: theme.surface; radius: 14; border.color: theme.line }
 
     onOpened: {
         localUrl.text = settings.localUrl
@@ -20,6 +21,7 @@ Dialog {
         apiKey.text = settings.anthropicKey
         summaryEngine.currentIndex = settings.summaryEngine === "claude" ? 1 : 0
         heavyEngine.currentIndex = settings.heavyEngine === "local" ? 0 : 1
+        cloneDirectory.text = settings.cloneDirectory
         backend.probeEngines()
     }
 
@@ -31,6 +33,7 @@ Dialog {
         settings.anthropicKey = apiKey.text
         settings.summaryEngine = summaryEngine.currentIndex === 1 ? "claude" : "local"
         settings.heavyEngine = heavyEngine.currentIndex === 0 ? "local" : "claude"
+        settings.cloneDirectory = cloneDirectory.text
     }
 
     readonly property var engines: ["Local", "Claude"]
@@ -41,7 +44,7 @@ Dialog {
         columnSpacing: 16
         rowSpacing: 6
 
-        Label { text: "Modèle local"; font.bold: true; color: theme.accent; Layout.columnSpan: 2 }
+        Label { text: "Modèle local"; font.bold: true; color: theme.highlight; Layout.columnSpan: 2 }
 
         Label { text: "Serveur" }
         TextField {
@@ -54,7 +57,7 @@ Dialog {
             Layout.fillWidth: true
             wrapMode: Text.Wrap
             text: backend.localOnline ? "En ligne · " + backend.localModels.length + " modèles" : "Hors ligne : lance le serveur de LM Studio ou Ollama"
-            color: backend.localOnline ? "#7fcf8a" : "#d9a54a"
+            color: backend.localOnline ? theme.success : theme.warning
         }
         Label { text: "Modèle de chat" }
         ComboBox {
@@ -75,11 +78,11 @@ Dialog {
             Layout.fillWidth: true
             wrapMode: Text.Wrap
             text: "Modèle de chat vide = le premier modèle chargé sur le serveur. Les embeddings (recherche par le sens) demandent un modèle dédié, par ex. nomic-embed-text."
-            color: "#7a7a85"
+            color: theme.textDim
             font.pixelSize: 11
         }
 
-        Label { text: "Claude"; font.bold: true; color: theme.accent; Layout.columnSpan: 2; Layout.topMargin: 10 }
+        Label { text: "Claude"; font.bold: true; color: theme.highlight; Layout.columnSpan: 2; Layout.topMargin: 10 }
 
         Label { text: "Modèle" }
         TextField { id: claudeModel; Layout.fillWidth: true }
@@ -92,11 +95,16 @@ Dialog {
             placeholderText: settings.keyFromEnvironment ? "Fournie par ANTHROPIC_API_KEY" : "sk-ant-…"
         }
 
-        Label { text: "Répartition"; font.bold: true; color: theme.accent; Layout.columnSpan: 2; Layout.topMargin: 10 }
+        Label { text: "Répartition"; font.bold: true; color: theme.highlight; Layout.columnSpan: 2; Layout.topMargin: 10 }
 
         Label { text: "Résumés" }
         ComboBox { id: summaryEngine; Layout.fillWidth: true; model: dialog.engines }
         Label { text: "Chat, plans, Git" }
         ComboBox { id: heavyEngine; Layout.fillWidth: true; model: dialog.engines }
+
+        Label { text: "GitHub"; font.bold: true; color: theme.highlight; Layout.columnSpan: 2; Layout.topMargin: 10 }
+
+        Label { text: "Cloner dans" }
+        TextField { id: cloneDirectory; Layout.fillWidth: true; placeholderText: "~/Work" }
     }
 }

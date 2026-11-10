@@ -6,47 +6,121 @@ import QtQuick.Layouts
 // The right-hand side: where every AI result shows up.
 Rectangle {
     id: panel
-    color: "#141417"
-    radius: 10
+    color: theme.surface
+    radius: 12
+    border.color: theme.line
+    border.width: 1
 
     property alias results: resultsList
+    readonly property bool narrow: width < 440
     signal revealRequested(string path)
 
     readonly property var tabs: [
-        { key: "preview", label: "Aperçu", hint: "Espace" },
-        { key: "search", label: "Recherche", hint: "/" },
-        { key: "chat", label: "Chat", hint: "C" },
-        { key: "plan", label: "Plan", hint: ":" }
+        { key: "preview", label: "Aperçu", icon: "eye" },
+        { key: "search", label: "Recherche", icon: "search" },
+        { key: "chat", label: "Chat", icon: "chat" },
+        { key: "plan", label: "Plan", icon: "plan" }
     ]
+
+    component EmptyState: ColumnLayout {
+        property string icon
+        property string title
+        property string body
+        property var keys: []
+        spacing: 10
+        Icon { Layout.alignment: Qt.AlignHCenter; name: parent.icon; size: 30; color: theme.textFaint; stroke: 1.3 }
+        Text {
+            Layout.alignment: Qt.AlignHCenter
+            text: parent.title
+            color: theme.text
+            font.pixelSize: 14
+            font.weight: Font.DemiBold
+        }
+        Text {
+            Layout.fillWidth: true
+            Layout.maximumWidth: 300
+            Layout.alignment: Qt.AlignHCenter
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.Wrap
+            text: parent.body
+            color: theme.textDim
+            font.pixelSize: 12
+            lineHeight: 1.25
+        }
+        RowLayout {
+            Layout.alignment: Qt.AlignHCenter
+            Layout.topMargin: 4
+            spacing: 6
+            Repeater {
+                model: parent.parent.keys
+                delegate: Keycap { required property string modelData; text: modelData }
+            }
+        }
+    }
+
+    component PanelTitle: Text {
+        Layout.fillWidth: true
+        color: theme.text
+        font.pixelSize: 17
+        font.weight: Font.Bold
+        font.letterSpacing: -0.2
+        elide: Text.ElideMiddle
+    }
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 14
-        spacing: 12
+        anchors.margins: 16
+        spacing: 14
 
-        // Tabs
+        // Segmented tabs
         RowLayout {
-            spacing: 6
-            Repeater {
-                model: panel.tabs
-                delegate: Rectangle {
-                    required property var modelData
-                    readonly property bool active: backend.panel === modelData.key
-                    height: 28
-                    width: label.implicitWidth + 22
-                    radius: 14
-                    color: active ? theme.accent : "#1d1d22"
-                    Text {
-                        id: label
-                        anchors.centerIn: parent
-                        text: modelData.label
-                        color: parent.active ? theme.accentForeground : "#a0a0aa"
-                        font.pixelSize: 12
-                        font.bold: parent.active
-                    }
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: backend.panel = modelData.key
+            Layout.fillWidth: true
+            spacing: 8
+            Rectangle {
+                Layout.preferredHeight: 32
+                Layout.preferredWidth: tabRow.implicitWidth + 6
+                radius: 9
+                color: theme.background
+                border.color: theme.line
+                Row {
+                    id: tabRow
+                    anchors.centerIn: parent
+                    spacing: 2
+                    Repeater {
+                        model: panel.tabs
+                        delegate: Rectangle {
+                            required property var modelData
+                            required property int index
+                            readonly property bool active: backend.panel === modelData.key
+                            height: 26
+                            width: tabContent.implicitWidth + 18
+                            radius: 7
+                            color: active ? theme.raised : (tabHover.containsMouse ? theme.alpha(theme.text, 0.04) : "transparent")
+                            Row {
+                                id: tabContent
+                                anchors.centerIn: parent
+                                spacing: 6
+                                Icon {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    name: modelData.icon; size: 14
+                                    color: parent.parent.active ? theme.highlight : theme.textFaint
+                                }
+                                Text {
+                                    visible: !panel.narrow || parent.parent.active
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: modelData.label
+                                    color: parent.parent.active ? theme.text : theme.textDim
+                                    font.pixelSize: 12
+                                    font.weight: parent.parent.active ? Font.DemiBold : Font.Normal
+                                }
+                            }
+                            MouseArea {
+                                id: tabHover
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                onClicked: backend.panel = modelData.key
+                            }
+                        }
                     }
                 }
             }
@@ -54,8 +128,8 @@ Rectangle {
             BusyIndicator {
                 visible: backend.busy
                 running: backend.busy
-                Layout.preferredWidth: 26
-                Layout.preferredHeight: 26
+                Layout.preferredWidth: 24
+                Layout.preferredHeight: 24
             }
         }
 
@@ -65,37 +139,70 @@ Rectangle {
             currentIndex: ["preview", "search", "chat", "plan"].indexOf(backend.panel)
 
             // ---------------------------------------------------------- preview
-            ColumnLayout {
-                spacing: 6
-                Text {
-                    Layout.fillWidth: true
-                    text: backend.previewTitle || "Aperçu"
-                    color: "#f2f2f5"
-                    font.pixelSize: 18
-                    font.bold: true
-                    elide: Text.ElideMiddle
+            Item {
+                EmptyState {
+                    anchors.centerIn: parent
+                    width: parent.width - 40
+                    visible: !backend.previewTitle
+                    icon: "sparkle"
+                    title: "Résumé par l'IA"
+                    body: "Sélectionne un fichier, un dossier ou un dépôt et appuie sur Espace. D explique les changements Git en cours."
+                    keys: ["Espace", "D"]
                 }
-                Text {
-                    Layout.fillWidth: true
-                    text: backend.previewMeta + (backend.previewEngine ? "  ·  résumé " + backend.previewEngine : "")
-                    color: "#7a7a85"
-                    font.pixelSize: 12
-                    elide: Text.ElideRight
-                }
-                ScrollView {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    Layout.topMargin: 8
-                    clip: true
-                    TextArea {
-                        readOnly: true
-                        wrapMode: TextEdit.Wrap
-                        textFormat: TextEdit.MarkdownText
-                        text: backend.previewText || "Choisis un fichier ou un dossier et appuie sur Espace pour un résumé.\n\nD résume les changements Git du dépôt."
-                        color: backend.previewText ? "#d8d8de" : "#6a6a74"
-                        font.pixelSize: 13
-                        background: null
-                        selectByMouse: true
+                ColumnLayout {
+                    anchors.fill: parent
+                    visible: backend.previewTitle !== ""
+                    spacing: 6
+                    PanelTitle { text: backend.previewTitle }
+                    RowLayout {
+                        spacing: 8
+                        Text {
+                            text: backend.previewMeta
+                            color: theme.textDim
+                            font.pixelSize: 12
+                            elide: Text.ElideRight
+                            Layout.maximumWidth: panel.width - 140
+                        }
+                        Rectangle {
+                            visible: backend.previewEngine !== ""
+                            implicitWidth: engineRow.implicitWidth + 14
+                            implicitHeight: 20
+                            radius: 10
+                            color: theme.alpha(theme.highlight, 0.12)
+                            Row {
+                                id: engineRow
+                                anchors.centerIn: parent
+                                spacing: 4
+                                Icon { anchors.verticalCenter: parent.verticalCenter; name: "sparkle"; size: 11; color: theme.highlight }
+                                Text {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: backend.previewEngine
+                                    color: theme.highlight
+                                    font.pixelSize: 11
+                                    font.weight: Font.Medium
+                                }
+                            }
+                        }
+                    }
+                    Rectangle { Layout.fillWidth: true; Layout.topMargin: 8; height: 1; color: theme.line }
+                    ScrollView {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        clip: true
+                        TextArea {
+                            readOnly: true
+                            wrapMode: TextEdit.Wrap
+                            textFormat: TextEdit.MarkdownText
+                            text: backend.previewText
+                            color: theme.text
+                            selectionColor: theme.alpha(theme.highlight, 0.35)
+                            selectedTextColor: theme.text
+                            font.pixelSize: 13
+                            background: null
+                            selectByMouse: true
+                            leftPadding: 0
+                            rightPadding: 4
+                        }
                     }
                 }
             }
@@ -103,22 +210,15 @@ Rectangle {
             // ---------------------------------------------------------- search
             ColumnLayout {
                 spacing: 8
-                Text {
-                    Layout.fillWidth: true
-                    text: backend.searchQuery ? "« " + backend.searchQuery + " »" : "Recherche"
-                    color: "#f2f2f5"
-                    font.pixelSize: 18
-                    font.bold: true
-                    elide: Text.ElideRight
-                }
+                PanelTitle { text: backend.searchQuery ? "« " + backend.searchQuery + " »" : "Recherche" }
                 Text {
                     Layout.fillWidth: true
                     wrapMode: Text.Wrap
                     text: indexer.running
                           ? "Indexation… " + indexer.done + " / " + indexer.total
-                          : (indexer.size > 0 ? "Index : " + indexer.size + " fichiers sous " + indexer.root
-                                              : "Pas d'index : recherche par nom. I indexe ce dossier pour chercher par le sens.")
-                    color: "#7a7a85"
+                          : (indexer.size > 0 ? "Par le sens · index de " + indexer.size + " fichiers"
+                                              : "Par nom · I indexe ce dossier pour chercher par le sens")
+                    color: theme.textDim
                     font.pixelSize: 12
                 }
                 ProgressBar {
@@ -132,6 +232,7 @@ Rectangle {
                     id: resultsList
                     Layout.fillWidth: true
                     Layout.fillHeight: true
+                    Layout.topMargin: 4
                     clip: true
                     model: backend.searchResults
                     spacing: 2
@@ -142,53 +243,68 @@ Rectangle {
                     delegate: Rectangle {
                         required property var modelData
                         required property int index
+                        readonly property bool current: ListView.isCurrentItem && ListView.view.activeFocus
                         width: ListView.view.width
-                        height: 44
-                        radius: 6
-                        color: ListView.isCurrentItem && ListView.view.activeFocus ? Qt.rgba(1, 1, 1, 0.08) : "transparent"
-                        Column {
-                            anchors.verticalCenter: parent.verticalCenter
-                            anchors.left: parent.left
-                            anchors.right: score.left
+                        height: 48
+                        radius: 8
+                        color: current ? theme.alpha(theme.highlight, 0.14) : (hit.containsMouse ? theme.alpha(theme.text, 0.035) : "transparent")
+                        RowLayout {
+                            anchors.fill: parent
                             anchors.leftMargin: 10
-                            anchors.rightMargin: 8
-                            Text {
-                                width: parent.width
-                                text: modelData.name
-                                color: "#e6e6ea"
-                                font.pixelSize: 13
-                                elide: Text.ElideMiddle
-                            }
-                            Text {
-                                width: parent.width
-                                text: modelData.relative
-                                color: "#6a6a74"
-                                font.pixelSize: 11
-                                elide: Text.ElideMiddle
-                            }
-                        }
-                        Text {
-                            id: score
-                            anchors.right: parent.right
                             anchors.rightMargin: 10
-                            anchors.verticalCenter: parent.verticalCenter
-                            visible: modelData.score >= 0
-                            text: Math.round(modelData.score * 100) + "%"
-                            color: theme.accent
-                            font.pixelSize: 11
-                            font.family: "monospace"
+                            spacing: 10
+                            Icon { name: "file"; size: 16; color: theme.textDim }
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 2
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: modelData.name
+                                    color: theme.text
+                                    font.pixelSize: 13
+                                    font.weight: Font.Medium
+                                    elide: Text.ElideMiddle
+                                }
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: modelData.relative
+                                    color: theme.textFaint
+                                    font.pixelSize: 11
+                                    elide: Text.ElideMiddle
+                                }
+                            }
+                            // Match strength as a short bar rather than a raw percentage.
+                            Rectangle {
+                                visible: modelData.score >= 0
+                                Layout.preferredWidth: 36
+                                Layout.preferredHeight: 4
+                                radius: 2
+                                color: theme.line
+                                Rectangle {
+                                    width: parent.width * Math.max(0.05, Math.min(1, (modelData.score - 0.3) / 0.5))
+                                    height: parent.height
+                                    radius: 2
+                                    color: theme.highlight
+                                }
+                            }
                         }
                         MouseArea {
+                            id: hit
                             anchors.fill: parent
+                            hoverEnabled: true
                             onClicked: resultsList.currentIndex = index
                             onDoubleClicked: panel.revealRequested(modelData.path)
                         }
                     }
-                    Text {
+                    EmptyState {
                         anchors.centerIn: parent
-                        visible: resultsList.count === 0 && backend.searchQuery !== "" && !backend.busy
-                        text: "Aucun résultat."
-                        color: "#6a6a74"
+                        width: parent.width - 40
+                        visible: resultsList.count === 0 && !backend.busy
+                        icon: "search"
+                        title: backend.searchQuery ? "Aucun résultat" : "Cherche comme tu parles"
+                        body: backend.searchQuery ? "Essaie d'autres mots, ou indexe ce dossier pour chercher par le sens."
+                                                  : "« la facture d'électricité de mars », « le script qui redimensionne les images »…"
+                        keys: ["/", "I"]
                     }
                 }
             }
@@ -196,12 +312,13 @@ Rectangle {
             // ---------------------------------------------------------- chat
             ColumnLayout {
                 spacing: 8
+                PanelTitle { text: "Chat"; visible: chatList.count > 0 }
                 Text {
+                    visible: chatList.count > 0
                     Layout.fillWidth: true
-                    text: "Chat · " + (backend.chatFolder || backend.currentPath)
-                    color: "#f2f2f5"
-                    font.pixelSize: 15
-                    font.bold: true
+                    text: backend.chatFolder || backend.currentPath
+                    color: theme.textFaint
+                    font.pixelSize: 12
                     elide: Text.ElideMiddle
                 }
                 ListView {
@@ -209,119 +326,140 @@ Rectangle {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     clip: true
-                    spacing: 10
+                    spacing: 12
                     model: backend.chatLog
                     onCountChanged: positionViewAtEnd()
                     Connections {
                         target: backend
                         function onChatChanged() { chatList.positionViewAtEnd() }
                     }
-                    delegate: Rectangle {
+                    delegate: Item {
                         required property var modelData
                         readonly property bool mine: modelData.role === "user"
                         width: ListView.view.width
-                        height: body.implicitHeight + 18
-                        radius: 8
-                        color: mine ? "#1f1f25" : "transparent"
-                        border.color: mine ? "transparent" : "#24242a"
-                        TextEdit {
-                            id: body
-                            anchors.fill: parent
-                            anchors.margins: 9
-                            readOnly: true
-                            selectByMouse: true
-                            wrapMode: TextEdit.Wrap
-                            textFormat: parent.mine ? TextEdit.PlainText : TextEdit.MarkdownText
-                            text: modelData.text || "…"
-                            color: parent.mine ? "#f2f2f5" : "#d0d0d6"
-                            font.pixelSize: 13
+                        height: bubble.height
+                        Rectangle {
+                            id: bubble
+                            anchors.right: parent.mine ? parent.right : undefined
+                            width: parent.mine ? Math.min(parent.width * 0.85, body.implicitWidth + 24) : parent.width
+                            height: body.implicitHeight + (parent.mine ? 16 : 4)
+                            radius: 10
+                            color: parent.mine ? theme.alpha(theme.highlight, 0.14) : "transparent"
+                            TextEdit {
+                                id: body
+                                anchors.fill: parent
+                                anchors.margins: parent.parent.mine ? 8 : 2
+                                anchors.leftMargin: parent.parent.mine ? 12 : 0
+                                readOnly: true
+                                selectByMouse: true
+                                wrapMode: TextEdit.Wrap
+                                textFormat: parent.parent.mine ? TextEdit.PlainText : TextEdit.MarkdownText
+                                text: modelData.text || "…"
+                                color: theme.text
+                                selectionColor: theme.alpha(theme.highlight, 0.35)
+                                font.pixelSize: 13
+                            }
                         }
                     }
-                    Text {
+                    EmptyState {
                         anchors.centerIn: parent
                         width: parent.width - 40
                         visible: chatList.count === 0
-                        horizontalAlignment: Text.AlignHCenter
-                        wrapMode: Text.Wrap
-                        text: "Appuie sur C et pose une question sur ce dossier.\nAvec un index (I), les fichiers pertinents sont lus pour répondre."
-                        color: "#6a6a74"
+                        icon: "chat"
+                        title: "Discute avec ce dossier"
+                        body: "Pose une question sur ce qu'il contient. Avec un index, les fichiers pertinents sont lus pour répondre."
+                        keys: ["C"]
                     }
                 }
             }
 
             // ---------------------------------------------------------- plan
-            ColumnLayout {
-                spacing: 8
-                Text {
-                    Layout.fillWidth: true
-                    text: backend.planRequest || "Plan"
-                    color: "#f2f2f5"
-                    font.pixelSize: 16
-                    font.bold: true
-                    wrapMode: Text.Wrap
-                    maximumLineCount: 3
-                    elide: Text.ElideRight
+            Item {
+                EmptyState {
+                    anchors.centerIn: parent
+                    width: parent.width - 40
+                    visible: !backend.planRequest
+                    icon: "plan"
+                    title: "Ranger, déplacer, renommer"
+                    body: "Décris ce que tu veux en français, ou laisse flair ranger par type. Rien ne bouge avant ta validation, et Ctrl+Z annule."
+                    keys: [":", "S", "Maj+S"]
                 }
-                Text {
-                    Layout.fillWidth: true
-                    text: backend.planExplanation || "« : » décrit ce que tu veux faire en français (« range les PDF par année », « renomme les photos par date »…).\nS range par type sans IA, Maj+S demande un rangement à l'IA.\nRien ne bouge avant que tu valides avec Ctrl+Entrée."
-                    color: backend.planExplanation ? "#d0d0d6" : "#6a6a74"
-                    font.pixelSize: 13
-                    wrapMode: Text.Wrap
-                }
-                Repeater {
-                    model: backend.planSkipped
-                    delegate: Text {
-                        required property string modelData
+                ColumnLayout {
+                    anchors.fill: parent
+                    visible: backend.planRequest !== ""
+                    spacing: 8
+                    PanelTitle { text: backend.planRequest; wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight }
+                    Text {
                         Layout.fillWidth: true
-                        text: "⚠ " + modelData
-                        color: "#d9a54a"
-                        font.pixelSize: 12
+                        text: backend.planExplanation
+                        color: theme.textDim
+                        font.pixelSize: 13
                         wrapMode: Text.Wrap
+                        lineHeight: 1.2
                     }
-                }
-                ListView {
-                    id: planList
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    clip: true
-                    model: backend.planItems
-                    spacing: 2
-                    delegate: RowLayout {
-                        required property var modelData
-                        width: ListView.view.width
-                        spacing: 8
-                        Text {
-                            Layout.preferredWidth: 18
-                            text: modelData.op === "mkdir" ? "+" : "→"
-                            color: theme.accent
-                            font.bold: true
-                            font.family: "monospace"
-                        }
-                        Text {
+                    Repeater {
+                        model: backend.planSkipped
+                        delegate: RowLayout {
+                            required property string modelData
                             Layout.fillWidth: true
-                            text: modelData.op === "mkdir"
-                                  ? "<b>" + modelData.to + "/</b>"
-                                  : modelData.from + "  <font color='#6a6a74'>→</font>  <b>" + modelData.to + "</b>"
-                            textFormat: Text.StyledText
-                            color: "#d0d0d6"
-                            font.pixelSize: 12
-                            elide: Text.ElideMiddle
+                            spacing: 8
+                            Icon { name: "alert"; size: 14; color: theme.warning }
+                            Text {
+                                Layout.fillWidth: true
+                                text: modelData
+                                color: theme.warning
+                                font.pixelSize: 12
+                                wrapMode: Text.Wrap
+                            }
                         }
                     }
-                }
-                RowLayout {
-                    visible: planList.count > 0
-                    Layout.fillWidth: true
-                    Button {
-                        text: "Appliquer  (Ctrl+Entrée)"
-                        highlighted: true
-                        onClicked: backend.applyPlan()
+                    Rectangle { Layout.fillWidth: true; height: 1; color: theme.line; visible: planList.count > 0 }
+                    ListView {
+                        id: planList
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        clip: true
+                        model: backend.planItems
+                        spacing: 1
+                        delegate: RowLayout {
+                            required property var modelData
+                            width: ListView.view.width
+                            height: 26
+                            spacing: 10
+                            Icon {
+                                name: modelData.op === "mkdir" ? "folder" : "chevron"
+                                size: 14
+                                color: modelData.op === "mkdir" ? theme.highlight : theme.textFaint
+                            }
+                            Text {
+                                Layout.fillWidth: true
+                                text: modelData.op === "mkdir"
+                                      ? "<b>" + modelData.to + "/</b>"
+                                      : modelData.from + "&nbsp;&nbsp;→&nbsp;&nbsp;<b>" + modelData.to + "</b>"
+                                textFormat: Text.StyledText
+                                color: theme.text
+                                font.pixelSize: 12
+                                elide: Text.ElideMiddle
+                            }
+                        }
                     }
-                    Button {
-                        text: "Abandonner  (Échap)"
-                        flat: true
-                        onClicked: backend.discardPlan()
+                    RowLayout {
+                        visible: planList.count > 0
+                        Layout.fillWidth: true
+                        spacing: 8
+                        Button {
+                            text: "Appliquer " + planList.count + " actions"
+                            highlighted: true
+                            Material.accent: theme.highlight
+                            onClicked: backend.applyPlan()
+                        }
+                        Button {
+                            text: "Abandonner"
+                            flat: true
+                            onClicked: backend.discardPlan()
+                        }
+                        Item { Layout.fillWidth: true }
+                        Keycap { text: "Ctrl+Entrée" }
                     }
                 }
             }

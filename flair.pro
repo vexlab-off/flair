@@ -8,6 +8,7 @@ HEADERS += \
     src/ai.h \
     src/backend.h \
     src/filemodel.h \
+    src/github.h \
     src/gitinfo.h \
     src/indexer.h \
     src/plan.h \
@@ -20,6 +21,7 @@ SOURCES += \
     src/ai.cpp \
     src/backend.cpp \
     src/filemodel.cpp \
+    src/github.cpp \
     src/gitinfo.cpp \
     src/indexer.cpp \
     src/plan.cpp \

@@ -15,6 +15,7 @@ class Settings : public QObject {
     Q_PROPERTY(bool keyFromEnvironment READ keyFromEnvironment CONSTANT)
     Q_PROPERTY(QString summaryEngine READ summaryEngine WRITE setSummaryEngine NOTIFY changed)
     Q_PROPERTY(QString heavyEngine READ heavyEngine WRITE setHeavyEngine NOTIFY changed)
+    Q_PROPERTY(QString cloneDirectory READ cloneDirectory WRITE setCloneDirectory NOTIFY changed)
 
 public:
     explicit Settings(const QString &file = {}, QObject *parent = nullptr);
@@ -30,6 +31,8 @@ public:
     // "local" or "claude".
     QString summaryEngine() const;
     QString heavyEngine() const;
+    // Where repositories opened from the GitHub view get cloned.
+    QString cloneDirectory() const;
 
     void setLocalUrl(const QString &v);
     void setLocalModel(const QString &v);
@@ -38,6 +41,7 @@ public:
     void setAnthropicKey(const QString &v);
     void setSummaryEngine(const QString &v);
     void setHeavyEngine(const QString &v);
+    void setCloneDirectory(const QString &v);
 
 signals:
     void changed();

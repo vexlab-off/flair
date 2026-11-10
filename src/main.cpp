@@ -1,6 +1,7 @@
 // flair — a file explorer that reads, finds, sorts, and answers with AI.
 
 #include <QDir>
+#include <QFont>
 #include <QGuiApplication>
 #include <QIcon>
 #include <QQmlApplicationEngine>
@@ -11,6 +12,7 @@
 #include "ai.h"
 #include "backend.h"
 #include "filemodel.h"
+#include "github.h"
 #include "gitinfo.h"
 #include "indexer.h"
 #include "settings.h"
@@ -27,6 +29,11 @@ int main(int argc, char *argv[]) {
     app.setWindowIcon(QIcon::fromTheme("flair"));
 
     QQuickStyle::setStyle("Material");
+    // Inter where installed; Qt falls back to the system sans otherwise.
+    QFont font("Inter");
+    font.setPixelSize(13);
+    font.setHintingPreference(QFont::PreferNoHinting);
+    app.setFont(font);
 
     Theme theme;
     Settings settings;
@@ -34,7 +41,8 @@ int main(int argc, char *argv[]) {
     GitInfo git;
     FileModel files(&git);
     Indexer indexer(&ai);
-    Backend backend(&settings, &ai, &files, &git, &indexer);
+    GitHubRepos github;
+    Backend backend(&settings, &ai, &files, &git, &indexer, &github);
 
     const auto args = app.arguments();
     const QString start = args.size() > 1 ? args.at(1) : QDir::currentPath();
@@ -48,6 +56,7 @@ int main(int argc, char *argv[]) {
     engine.rootContext()->setContextProperty("git", &git);
     engine.rootContext()->setContextProperty("indexer", &indexer);
     engine.rootContext()->setContextProperty("settings", &settings);
+    engine.rootContext()->setContextProperty("github", &github);
     engine.load(QUrl("qrc:/Main.qml"));
     if (engine.rootObjects().isEmpty())
         return 1;

@@ -2,10 +2,12 @@
 #include <QFile>
 #include <QJsonDocument>
 #include <QTemporaryDir>
+#include <QTimeZone>
 #include <QtTest>
 
 #include "ai.h"
 #include "backend.h"
+#include "github.h"
 #include "gitinfo.h"
 #include "indexer.h"
 #include "plan.h"
@@ -38,6 +40,19 @@ private slots:
         Theme theme(dir.path());
         QCOMPARE(theme.accent(), QString("#112233"));
         QCOMPARE(theme.accentForeground(), QString("white"));
+    }
+
+    void highlightAvoidsGreyAccent() {
+        QTemporaryDir dir;
+        touch(dir.path() + "/theme/colors.toml",
+              "accent = \"#6b7280\"\nbackground = \"#0b0d10\"\nforeground = \"#f3f4f6\"\nblue = \"#5c82da\"\n");
+        Theme grey(dir.path());
+        QCOMPARE(grey.highlight().name(), QString("#5c82da"));
+        QCOMPARE(grey.background().name(), QString("#0b0d10"));
+
+        QTemporaryDir vivid;
+        touch(vivid.path() + "/theme/colors.toml", "accent = \"#e0a030\"\nblue = \"#5c82da\"\n");
+        QCOMPARE(Theme(vivid.path()).highlight().name(), QString("#e0a030"));
     }
 
     // ------------------------------------------------------------ settings
@@ -210,6 +225,42 @@ private slots:
         QCOMPARE(GitInfo::webUrlFromRemote("https://github.com/owner/repo"), QString("https://github.com/owner/repo"));
         QCOMPARE(GitInfo::webUrlFromRemote("https://token@github.com/o/r.git"), QString("https://github.com/o/r"));
         QCOMPARE(GitInfo::webUrlFromRemote("/srv/git/repo.git"), QString());
+    }
+
+    // ------------------------------------------------------------ GitHub
+    void parsesRepoList() {
+        const auto repos = GitHubRepos::parse(R"([
+            {"name":"old","nameWithOwner":"me/old","updatedAt":"2025-01-01T00:00:00Z","primaryLanguage":null},
+            {"name":"new","nameWithOwner":"me/new","description":"d","isPrivate":true,"stargazerCount":3,
+             "updatedAt":"2026-11-01T00:00:00Z","primaryLanguage":{"name":"C++"}}
+        ])");
+        QCOMPARE(repos.size(), 2);
+        QCOMPARE(repos[0].fullName, QString("me/new")); // most recently updated first
+        QCOMPARE(repos[0].language, QString("C++"));
+        QVERIFY(repos[0].isPrivate);
+        QCOMPARE(repos[1].language, QString());
+    }
+
+    void matchesRemotesToClones() {
+        QCOMPARE(GitHubRepos::repoFromRemote("git@github.com:Me/Repo.git"), QString("me/repo"));
+        QCOMPARE(GitHubRepos::repoFromRemote("https://github.com/me/repo"), QString("me/repo"));
+        QCOMPARE(GitHubRepos::repoFromRemote("https://gitlab.com/me/repo"), QString());
+
+        QTemporaryDir dir;
+        touch(dir.path() + "/top/.git/config", "[remote \"origin\"]\n\turl = https://github.com/me/top.git\n");
+        touch(dir.path() + "/group/nested/.git/config", "[remote \"origin\"]\n\turl = git@github.com:me/nested.git\n");
+        touch(dir.path() + "/group/a/b/.git/config", "[remote \"origin\"]\n\turl = git@github.com:me/deep.git\n");
+        const auto clones = GitHubRepos::findClones({dir.path()});
+        QCOMPARE(clones.value("me/top"), dir.path() + "/top");
+        QCOMPARE(clones.value("me/nested"), dir.path() + "/group/nested");
+        QVERIFY(!clones.contains("me/deep")); // deeper than two levels
+    }
+
+    void relativeTimes() {
+        const auto now = QDateTime(QDate(2026, 11, 10), QTime(12, 0), QTimeZone::UTC);
+        QCOMPARE(GitHubRepos::relativeTime(now.addSecs(-120), now), QString("à l'instant"));
+        QCOMPARE(GitHubRepos::relativeTime(now.addDays(-4), now), QString("il y a 4 j"));
+        QCOMPARE(GitHubRepos::relativeTime(now.addDays(-800), now), QString("il y a 2 ans"));
     }
 
     // ------------------------------------------------------------ index
