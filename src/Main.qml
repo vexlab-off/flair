@@ -100,6 +100,7 @@ ApplicationWindow {
         sequence: "F"; context: Qt.ApplicationShortcut; enabled: browsing && backend.previewHtml !== ""
         onActivated: { backend.panel = "preview"; side.wide = !side.wide }
     }
+    Shortcut { sequence: "O"; context: Qt.ApplicationShortcut; enabled: browsing && !win.inGitHub; onActivated: files.cycleSort() }
     Shortcut { sequence: "R"; context: Qt.ApplicationShortcut; enabled: browsing && win.inGitHub; onActivated: github.refresh() }
     Shortcut {
         sequence: "G"; context: Qt.ApplicationShortcut; enabled: browsing
@@ -247,6 +248,12 @@ ApplicationWindow {
                     }
                 }
 
+                SortButton {
+                    visible: !win.inGitHub
+                    Layout.rightMargin: 6
+                    implicitHeight: 32
+                }
+
                 // Search affordance: the same thing / does.
                 Rectangle {
                     Layout.preferredWidth: win.compact ? 200 : 260
@@ -301,17 +308,17 @@ ApplicationWindow {
                         anchors.margins: 6
                         spacing: 0
 
-                        // Column headers
+                        // Column headers: click to sort, click again to flip.
                         RowLayout {
                             visible: !win.inGitHub
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 30
+                            Layout.preferredHeight: 34
                             Layout.leftMargin: 41
                             Layout.rightMargin: 14
                             spacing: 12
-                            Text { Layout.fillWidth: true; text: "Nom"; color: theme.textFaint; font.pixelSize: 11; font.weight: Font.Medium }
-                            Text { Layout.preferredWidth: 76; horizontalAlignment: Text.AlignRight; text: "Taille"; color: theme.textFaint; font.pixelSize: 11; font.weight: Font.Medium }
-                            Text { Layout.preferredWidth: 128; horizontalAlignment: Text.AlignRight; text: "Modifié"; color: theme.textFaint; font.pixelSize: 11; font.weight: Font.Medium }
+                            ColumnHeader { Layout.fillWidth: true; label: "Nom"; mode: "name"; alignRight: false }
+                            ColumnHeader { Layout.preferredWidth: 76; label: "Taille"; mode: "size" }
+                            ColumnHeader { Layout.preferredWidth: 128; label: "Modifié"; mode: "date" }
                         }
                         Rectangle { visible: !win.inGitHub; Layout.fillWidth: true; Layout.leftMargin: 6; Layout.rightMargin: 6; height: 1; color: theme.line }
 
@@ -330,14 +337,24 @@ ApplicationWindow {
                             boundsBehavior: Flickable.StopAtBounds
                             ScrollBar.vertical: ScrollBar {}
 
-                            onCurrentIndexChanged: if (currentIndex >= 0) win.selectedPath = files.pathAt(currentIndex)
+                            onCurrentIndexChanged: {
+                                if (currentIndex < 0) return
+                                win.selectedPath = files.pathAt(currentIndex)
+                                // Keyboard browsing renders pages only while the preview is showing.
+                                if (backend.panel === "preview") htmlPreviewDelay.restart()
+                            }
 
                             delegate: FileRow {
                                 width: ListView.view.width - 10
                                 x: 2
                                 current: ListView.isCurrentItem
                                 focused: list.activeFocus
-                                onClicked: { list.currentIndex = index; list.forceActiveFocus() }
+                                onClicked: {
+                                    list.currentIndex = index
+                                    list.forceActiveFocus()
+                                    // A click on a page always shows it.
+                                    if (path.toLowerCase().match(/\.x?html?$/)) backend.summarize(path)
+                                }
                                 onDoubleClicked: backend.activate(index)
                             }
 
@@ -554,6 +571,122 @@ ApplicationWindow {
                     Text { anchors.verticalCenter: parent.verticalCenter; text: "annuler"; color: theme.textFaint; font.pixelSize: 11 }
                 }
             }
+        }
+    }
+
+    component ColumnHeader: Item {
+        id: header
+        property string label
+        property string mode
+        property bool alignRight: true
+        readonly property bool active: files.effectiveSort === mode
+        implicitHeight: 24
+        Row {
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.right: header.alignRight ? parent.right : undefined
+            anchors.left: header.alignRight ? undefined : parent.left
+            spacing: 4
+            Text {
+                text: header.label
+                color: header.active ? theme.text : (headerHover.containsMouse ? theme.textDim : theme.textFaint)
+                font.pixelSize: 11
+                font.weight: header.active ? Font.DemiBold : Font.Medium
+            }
+            Icon {
+                visible: header.active
+                anchors.verticalCenter: parent.verticalCenter
+                name: files.effectiveDescending ? "arrowDown" : "arrowUp"
+                size: 11
+                color: theme.highlight
+            }
+        }
+        MouseArea {
+            id: headerHover
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: files.sortBy(header.mode)
+        }
+    }
+
+    // Shows the current order and opens the list of orders, each explained.
+    component SortButton: Rectangle {
+        id: sortChip
+        readonly property var labels: ({ name: "nom", date: "date", size: "taille", type: "type" })
+        implicitWidth: sortRow.implicitWidth + 20
+        implicitHeight: 24
+        radius: 8
+        color: sortMenu.visible || sortHover.containsMouse ? theme.raised : theme.alpha(theme.highlight, files.sortMode === "auto" ? 0.12 : 0)
+        border.color: files.sortMode === "auto" ? "transparent" : theme.line
+        Row {
+            id: sortRow
+            anchors.centerIn: parent
+            spacing: 5
+            Icon { anchors.verticalCenter: parent.verticalCenter; name: files.sortMode === "auto" ? "sparkle" : "sort"; size: 14; color: theme.highlight }
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: "Tri : " + (files.sortMode === "auto" ? "auto · " : "") + sortChip.labels[files.effectiveSort]
+                color: theme.text
+                font.pixelSize: 12
+                font.weight: Font.Medium
+            }
+        }
+        MouseArea { id: sortHover; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: sortMenu.open() }
+
+        Popup {
+            id: sortMenu
+            y: parent.height + 6
+            x: parent.width - width
+            width: 330
+            padding: 6
+            background: Rectangle { color: theme.surface; radius: 10; border.color: theme.line }
+            onClosed: win.focusList()
+            contentItem: Column {
+                spacing: 2
+                Repeater {
+                    model: [
+                        { mode: "auto", icon: "sparkle", title: "Automatique", text: "Les plus récents en haut dans Téléchargements, Images, Vidéos, Bureau et les captures ; par nom ailleurs." },
+                        { mode: "name", icon: "texte", title: "Nom", text: "Ordre alphabétique, nombres compris (photo 2 avant photo 10)." },
+                        { mode: "date", icon: "refresh", title: "Date de modification", text: "Les derniers modifiés en haut." },
+                        { mode: "size", icon: "layers", title: "Taille", text: "Les plus gros fichiers en haut." },
+                        { mode: "type", icon: "file", title: "Type", text: "Regroupe images, documents, code, archives…" }
+                    ]
+                    delegate: Rectangle {
+                        required property var modelData
+                        readonly property bool chosen: files.sortMode === modelData.mode
+                        width: 318
+                        height: optionText.implicitHeight + 34
+                        radius: 7
+                        color: chosen ? theme.alpha(theme.highlight, 0.12) : (optionHover.containsMouse ? theme.raised : "transparent")
+                        Icon { x: 10; y: 11; name: modelData.icon; size: 15; color: parent.chosen ? theme.highlight : theme.textDim }
+                        Column {
+                            x: 34; y: 9
+                            width: parent.width - 44
+                            spacing: 2
+                            Text { text: modelData.title; color: theme.text; font.pixelSize: 12; font.weight: Font.DemiBold }
+                            Text { id: optionText; width: parent.width; text: modelData.text; color: theme.textDim; font.pixelSize: 11; wrapMode: Text.Wrap }
+                        }
+                        MouseArea {
+                            id: optionHover
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            onClicked: { files.sortMode = modelData.mode; sortMenu.close() }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Selecting an HTML page shows it rendered, after a short pause so arrowing
+    // through a folder doesn't load every page on the way.
+    Timer {
+        id: htmlPreviewDelay
+        interval: 180
+        onTriggered: {
+            const path = win.selectedPath
+            if (path.toLowerCase().match(/\.x?html?$/) && backend.previewHtml !== path)
+                backend.summarize(path)
         }
     }
 

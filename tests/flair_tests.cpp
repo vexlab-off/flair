@@ -9,6 +9,7 @@
 #include "backend.h"
 #include "github.h"
 #include "gitinfo.h"
+#include "filemodel.h"
 #include "indexer.h"
 #include "plan.h"
 #include "settings.h"
@@ -79,9 +80,11 @@ private slots:
         QCOMPARE(settings.accentColor(), QString("#9b7bff"));
         settings.setAccentColor("theme");
         QCOMPARE(settings.accentColor(), QString("theme"));
-        QVERIFY(settings.openHtmlInEditor());
-        settings.setOpenHtmlInEditor(false);
-        QVERIFY(!settings.openHtmlInEditor());
+        QCOMPARE(settings.htmlOpenMode(), QString("preview"));
+        settings.setHtmlOpenMode("editor");
+        QCOMPARE(settings.htmlOpenMode(), QString("editor"));
+        settings.setHtmlOpenMode("nonsense");
+        QCOMPARE(settings.htmlOpenMode(), QString("editor"));
         settings.setEditorCommand("zed");
         QCOMPARE(settings.editorCommand(), QString("zed"));
     }
@@ -335,6 +338,37 @@ private slots:
         QCOMPARE(TextExtract::readText(dir.path() + "/a.unknown", 100), QString("plain words"));
         QVERIFY(TextExtract::readText(dir.path() + "/b.unknown", 100).isEmpty());
         QVERIFY(TextExtract::readText(dir.path() + "/c.png", 100).isEmpty());
+    }
+
+    void sortsFoldersFirstThenByMode() {
+        QTemporaryDir dir;
+        const auto root = dir.path();
+        touch(root + "/photo 10.txt", "aaaa");
+        touch(root + "/photo 2.txt", "a");
+        touch(root + "/big.zip", QByteArray(5000, 'x'));
+        QDir(root).mkdir("Zdossier");
+        {
+            QFile old(root + "/photo 2.txt");
+            QVERIFY(old.open(QIODevice::ReadWrite));
+            QVERIFY(old.setFileTime(QDateTime::currentDateTime().addDays(-3), QFileDevice::FileModificationTime));
+        }
+        auto names = [&](const QString &mode, bool descending) {
+            auto entries = QDir(root).entryInfoList(QDir::AllEntries | QDir::NoDotAndDotDot).toVector();
+            FileModel::sortEntries(entries, mode, descending);
+            QStringList out;
+            for (const auto &e : entries)
+                out << e.fileName();
+            return out;
+        };
+        QCOMPARE(names("name", false), (QStringList{"Zdossier", "big.zip", "photo 2.txt", "photo 10.txt"}));
+        QCOMPARE(names("name", true), (QStringList{"Zdossier", "photo 10.txt", "photo 2.txt", "big.zip"}));
+        QCOMPARE(names("size", true).mid(0, 2), (QStringList{"Zdossier", "big.zip"}));
+        QCOMPARE(names("date", true).last(), QString("photo 2.txt"));
+    }
+
+    void autoSortPicksDateForArrivals() {
+        QCOMPARE(FileModel::autoSortFor("/somewhere/Screenshots"), QString("date"));
+        QCOMPARE(FileModel::autoSortFor("/somewhere/project"), QString("name"));
     }
 
     void recognisesHtml() {

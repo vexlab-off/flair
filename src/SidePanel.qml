@@ -303,7 +303,9 @@ Rectangle {
                                 anchors.margins: panel.mobile ? 2 : 0
                                 zoomFactor: panel.zoom
                                 url: panel.isPage ? panel.fileUrl(backend.previewHtml) : "about:blank"
-                                // No cookies or storage kept between previews.
+                                // No cookies or storage kept between previews. (Qt suggests
+                                // WebEngineProfilePrototype since 6.9, but it crashes with
+                                // WebEngine 6.11 on Qt 6.12, so this keeps the older form.)
                                 profile: WebEngineProfile { offTheRecord: true }
                                 settings.javascriptCanOpenWindows: false
                                 settings.localContentCanAccessRemoteUrls: true

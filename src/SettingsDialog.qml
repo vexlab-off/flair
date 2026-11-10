@@ -22,6 +22,7 @@ Popup {
     property string accent
     property string editor
     property var editors: []
+    property string htmlMode: 'preview'
 
     readonly property var swatches: [
         { name: "Orange", value: "#ff8a3d" }, { name: "Ambre", value: "#f5b942" },
@@ -35,7 +36,7 @@ Popup {
         editors = settings.installedEditors()
         editor = settings.editorCommand
         editorField.text = editor
-        openHtml.checked = settings.openHtmlInEditor
+        htmlMode = settings.htmlOpenMode
         openCode.checked = settings.openCodeInEditor
         localUrl.text = settings.localUrl
         localModel.editText = settings.localModel
@@ -52,7 +53,7 @@ Popup {
     function save() {
         settings.accentColor = accent
         settings.editorCommand = editorField.text
-        settings.openHtmlInEditor = openHtml.checked
+        settings.htmlOpenMode = htmlMode
         settings.openCodeInEditor = openCode.checked
         settings.localUrl = localUrl.text
         settings.localModel = localModel.editText
@@ -190,7 +191,7 @@ Popup {
             Layout.margins: 24
             Layout.bottomMargin: 16
             spacing: 14
-            Logo { size: 34 ; tile: theme.highlight }
+            Logo { size: 34 }
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 2
@@ -290,8 +291,8 @@ Popup {
                     Field {
                         label: "Éditeur de code"
                         help: dialog.editors.length
-                              ? "Le programme qui ouvre le HTML et le code. Choisis un éditeur détecté, ou tape la commande d'un autre."
-                              : "Le programme qui ouvre le HTML et le code. Aucun éditeur connu n'est installé : tape sa commande (« code » pour VS Code)."
+                              ? "Le programme qui ouvre le code (et le HTML avec E). Choisis un éditeur détecté, ou tape la commande d'un autre."
+                              : "Le programme qui ouvre le code (et le HTML avec E). Aucun éditeur connu n'est installé : tape sa commande (« code » pour VS Code)."
                         ColumnLayout {
                             width: parent.width
                             spacing: 8
@@ -326,10 +327,38 @@ Popup {
                             }
                         }
                     }
-                    Toggle {
-                        id: openHtml
-                        label: "Ouvrir le HTML dans l'éditeur"
-                        help: "Activé : un fichier .html s'ouvre dans l'éditeur pour être modifié. Désactivé : il s'ouvre dans le navigateur pour être vu."
+                    Field {
+                        label: "Fichiers HTML"
+                        help: "Ce que font un double-clic ou Entrée sur une page .html. Un simple clic affiche toujours l'aperçu, et E ouvre toujours l'éditeur."
+                        Column {
+                            width: parent.width
+                            spacing: 6
+                            Repeater {
+                                model: [
+                                    { key: "preview", icon: "globe", title: "Aperçu dans flair", text: "La page s'affiche rendue dans le panneau de droite et se recharge à chaque enregistrement." },
+                                    { key: "editor", icon: "code", title: "Ouvrir dans l'éditeur", text: "Pour modifier le code de la page." },
+                                    { key: "browser", icon: "external", title: "Ouvrir dans le navigateur", text: "Ton navigateur par défaut, en plein écran." }
+                                ]
+                                delegate: Rectangle {
+                                    required property var modelData
+                                    readonly property bool chosen: dialog.htmlMode === modelData.key
+                                    width: parent.width
+                                    height: htmlText.implicitHeight + 36
+                                    radius: 9
+                                    color: chosen ? theme.alpha(theme.highlight, 0.12) : theme.background
+                                    border.color: chosen ? theme.highlight : theme.line
+                                    Icon { x: 14; y: 13; name: modelData.icon; size: 16; color: parent.chosen ? theme.highlight : theme.textDim }
+                                    Column {
+                                        x: 42; y: 10
+                                        width: parent.width - 56
+                                        spacing: 2
+                                        Text { text: modelData.title; color: theme.text; font.pixelSize: 13; font.weight: Font.DemiBold }
+                                        Text { id: htmlText; width: parent.width; text: modelData.text; color: theme.textDim; font.pixelSize: 12; wrapMode: Text.Wrap }
+                                    }
+                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: dialog.htmlMode = modelData.key }
+                                }
+                            }
+                        }
                     }
                     Toggle {
                         id: openCode
@@ -466,7 +495,7 @@ Popup {
             Button {
                 text: "Enregistrer"
                 highlighted: true
-                Material.accent: dialog.accent === "theme" ? theme.highlight : dialog.accent
+                Material.accent: dialog.accent === "theme" || dialog.accent === "" ? theme.highlight : dialog.accent
                 onClicked: dialog.save()
             }
         }

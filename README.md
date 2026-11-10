@@ -21,8 +21,13 @@ entièrement au clavier.
 - **Git** : statut des fichiers dans la liste, `D` explique les changements en cours et
   propose un message de commit, `G` ouvre le dépôt sur GitHub.
 
-- **Ouvrir dans l'éditeur** : Entrée sur un fichier HTML ou de code l'ouvre dans ton
-  éditeur (VS Code par défaut, réglable) ; `E` y ouvre n'importe quel fichier ou dossier.
+- **Ouvrir** : un clic, un double-clic ou Entrée sur une page HTML l'affiche rendue dans
+  flair (réglable : éditeur ou navigateur). Le code s'ouvre dans ton éditeur (VS Code par
+  défaut) ; `E` y ouvre n'importe quel fichier ou dossier.
+- **Tri automatique** : par défaut, la liste choisit son ordre selon le dossier : les plus
+  récents en haut dans Téléchargements, Images, Vidéos, Bureau et les captures, par nom
+  ailleurs. Clique sur une colonne pour trier par nom, taille ou date (re-clique pour
+  inverser), ou utilise le bouton « Tri » et la touche `O`.
 
 Les fichiers de code portent le vrai logo de leur langage. L'accent est orange par défaut ;
 les réglages proposent d'autres couleurs ou de suivre le thème Vex.
@@ -55,7 +60,8 @@ Si un moteur manque, la fenêtre le dit et explique quoi faire.
 | Touche | Action |
 |---|---|
 | ↑ ↓ / J K | Se déplacer |
-| Entrée / → / L | Ouvrir (HTML et code dans l'éditeur) |
+| Entrée / → / L | Ouvrir (HTML : aperçu, code : éditeur) |
+| O | Changer le tri |
 | E | Ouvrir dans l'éditeur de code |
 | Retour / ← / H | Dossier parent |
 | ~ | Dossier personnel |

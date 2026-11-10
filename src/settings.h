@@ -19,7 +19,8 @@ class Settings : public QObject {
     Q_PROPERTY(QString cloneDirectory READ cloneDirectory WRITE setCloneDirectory NOTIFY changed)
     Q_PROPERTY(QString accentColor READ accentColor WRITE setAccentColor NOTIFY changed)
     Q_PROPERTY(QString editorCommand READ editorCommand WRITE setEditorCommand NOTIFY changed)
-    Q_PROPERTY(bool openHtmlInEditor READ openHtmlInEditor WRITE setOpenHtmlInEditor NOTIFY changed)
+    // What Enter does on an HTML file: "preview", "editor" or "browser".
+    Q_PROPERTY(QString htmlOpenMode READ htmlOpenMode WRITE setHtmlOpenMode NOTIFY changed)
     Q_PROPERTY(bool openCodeInEditor READ openCodeInEditor WRITE setOpenCodeInEditor NOTIFY changed)
 
 public:
@@ -42,7 +43,7 @@ public:
     QString accentColor() const;
     // The program files open in: a command name such as code, codium or zed.
     QString editorCommand() const;
-    bool openHtmlInEditor() const;
+    QString htmlOpenMode() const;
     bool openCodeInEditor() const;
 
     void setLocalUrl(const QString &v);
@@ -55,7 +56,7 @@ public:
     void setCloneDirectory(const QString &v);
     void setAccentColor(const QString &v);
     void setEditorCommand(const QString &v);
-    void setOpenHtmlInEditor(bool v);
+    void setHtmlOpenMode(const QString &v);
     void setOpenCodeInEditor(bool v);
 
     // Code editors installed on this machine, as {command, name} maps.

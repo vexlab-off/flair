@@ -107,7 +107,10 @@ QString Settings::editorCommand() const {
 }
 
 void Settings::setEditorCommand(const QString &v) { put("editor/command", v.trimmed()); }
-bool Settings::openHtmlInEditor() const { return get("editor/html", "true") == "true"; }
+QString Settings::htmlOpenMode() const { return get("editor/htmlMode", "preview"); }
 bool Settings::openCodeInEditor() const { return get("editor/code", "true") == "true"; }
-void Settings::setOpenHtmlInEditor(bool v) { put("editor/html", v ? "true" : "false"); }
+void Settings::setHtmlOpenMode(const QString &v) {
+    if (v == "preview" || v == "editor" || v == "browser")
+        put("editor/htmlMode", v);
+}
 void Settings::setOpenCodeInEditor(bool v) { put("editor/code", v ? "true" : "false"); }

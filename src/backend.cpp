@@ -139,6 +139,8 @@ void Backend::activate(int row) {
         return;
     if (m_files->isDirAt(row))
         navigate(path);
+    else if (isHtml(path) && m_settings->htmlOpenMode() == "preview")
+        summarize(path);
     else if (opensInEditor(path))
         openInEditor(path);
     else
@@ -163,7 +165,7 @@ bool Backend::opensInEditor(const QString &path) const {
     const QFileInfo info(path);
     const auto suffix = info.suffix().toLower();
     if (suffix == "html" || suffix == "htm" || suffix == "xhtml")
-        return m_settings->openHtmlInEditor();
+        return m_settings->htmlOpenMode() == "editor";
     const auto kind = TextExtract::category(info);
     return m_settings->openCodeInEditor() && (kind == "code" || (kind == "texte" && suffix == "md"));
 }

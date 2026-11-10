@@ -9,12 +9,13 @@ Rectangle {
     readonly property var groups: [
         { title: "Naviguer", icon: "folder", keys: [
             ["↑ ↓  ·  J K", "Se déplacer"],
-            ["Entrée  ·  →  ·  L", "Ouvrir (HTML et code : dans l'éditeur)"],
+            ["Entrée  ·  →  ·  L", "Ouvrir (HTML : aperçu, code : éditeur)"],
             ["E", "Ouvrir dans l'éditeur de code"],
             ["Retour  ·  ←  ·  H", "Dossier parent"],
             ["~", "Dossier personnel"],
             ["Ctrl+L", "Aller à un chemin"],
-            [".", "Fichiers cachés"]
+            [".", "Fichiers cachés"],
+            ["O", "Changer le tri (auto, nom, date, taille, type)"]
         ]},
         { title: "IA", icon: "sparkle", keys: [
             ["Espace", "Aperçu : page HTML rendue, sinon résumé"],
