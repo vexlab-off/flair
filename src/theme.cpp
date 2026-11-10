@@ -71,7 +71,17 @@ QString Theme::accentForeground() const {
     return luminance > .179 ? "black" : "white";
 }
 
+void Theme::setOverride(const QString &color) {
+    const QColor next = color == "theme" ? QColor() : QColor(color);
+    if (next == m_override)
+        return;
+    m_override = next;
+    emit changed();
+}
+
 QColor Theme::highlight() const {
+    if (m_override.isValid())
+        return m_override;
     const QColor accent(m_accent);
     if (accent.hslSaturationF() >= 0.3)
         return accent;

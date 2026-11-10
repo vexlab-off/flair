@@ -37,6 +37,8 @@ int main(int argc, char *argv[]) {
 
     Theme theme;
     Settings settings;
+    theme.setOverride(settings.accentColor());
+    QObject::connect(&settings, &Settings::changed, &theme, [&] { theme.setOverride(settings.accentColor()); });
     AiClient ai(&settings);
     GitInfo git;
     FileModel files(&git);

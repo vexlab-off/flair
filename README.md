@@ -19,8 +19,11 @@ entièrement au clavier.
 - **Git** : statut des fichiers dans la liste, `D` explique les changements en cours et
   propose un message de commit, `G` ouvre le dépôt sur GitHub.
 
-L'interface suit toute la palette du thème Vex en direct. Quand l'accent du thème est
-presque gris, la sélection prend la couleur la plus vive de la palette.
+- **Ouvrir dans l'éditeur** : Entrée sur un fichier HTML ou de code l'ouvre dans ton
+  éditeur (VS Code par défaut, réglable) ; `E` y ouvre n'importe quel fichier ou dossier.
+
+Les fichiers de code portent le vrai logo de leur langage. L'accent est orange par défaut ;
+les réglages proposent d'autres couleurs ou de suivre le thème Vex.
 
 ## Sécurité des fichiers
 
@@ -50,7 +53,8 @@ Si un moteur manque, la fenêtre le dit et explique quoi faire.
 | Touche | Action |
 |---|---|
 | ↑ ↓ / J K | Se déplacer |
-| Entrée / → / L | Ouvrir |
+| Entrée / → / L | Ouvrir (HTML et code dans l'éditeur) |
+| E | Ouvrir dans l'éditeur de code |
 | Retour / ← / H | Dossier parent |
 | ~ | Dossier personnel |
 | Ctrl+L | Aller à un chemin |

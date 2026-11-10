@@ -54,6 +54,9 @@ public:
     Q_INVOKABLE QColor languageColor(const QString &language) const;
     Q_INVOKABLE QColor alpha(const QColor &color, double opacity) const;
 
+    // A fixed highlight colour chosen in the settings; empty follows the theme.
+    void setOverride(const QString &color);
+
     static QString readAccent(const QString &path);
     static QHash<QString, QColor> readColors(const QString &path);
     static QColor mix(const QColor &a, const QColor &b, double amount);
@@ -68,6 +71,7 @@ private:
 
     QString m_directory;
     QString m_accent = "#FFD60A";
+    QColor m_override;
     QHash<QString, QColor> m_colors;
     QFileSystemWatcher m_watcher;
     QTimer m_debounce;

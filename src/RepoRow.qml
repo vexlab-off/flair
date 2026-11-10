@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import "brands.js" as Brands
 
 // One repository in the GitHub folder: what it is, and whether it's here.
 Rectangle {
@@ -70,7 +71,12 @@ Rectangle {
         RowLayout {
             spacing: 6
             visible: row.language !== ""
-            Rectangle { width: 8; height: 8; radius: 4; color: theme.languageColor(row.language) }
+            Icon {
+                visible: brand !== null
+                size: 13
+                brand: Brands.forLanguage(row.language)
+            }
+            Rectangle { visible: !Brands.forLanguage(row.language); width: 8; height: 8; radius: 4; color: theme.languageColor(row.language) }
             Text { text: row.language; color: theme.textDim; font.pixelSize: 12 }
         }
         RowLayout {

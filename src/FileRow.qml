@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import "brands.js" as Brands
 
 Rectangle {
     id: row
@@ -36,8 +37,10 @@ Rectangle {
 
         Icon {
             name: row.iconFor[row.kind] || row.kind
+            brand: row.isDir ? null : Brands.forFile(row.name)
             color: theme.kindColor(row.kind)
-            size: 17
+            size: brand ? 16 : 17
+            Layout.preferredWidth: 17
         }
         Text {
             Layout.fillWidth: true

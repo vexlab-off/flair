@@ -132,6 +132,8 @@ void Backend::activate(int row) {
         return;
     if (m_files->isDirAt(row))
         navigate(path);
+    else if (opensInEditor(path))
+        openInEditor(path);
     else
         openExternally(path);
 }
@@ -149,6 +151,31 @@ void Backend::openExternally(const QString &path) {
 }
 
 void Backend::reveal(const QString &path) { navigate(path); }
+
+bool Backend::opensInEditor(const QString &path) const {
+    const QFileInfo info(path);
+    const auto suffix = info.suffix().toLower();
+    if (suffix == "html" || suffix == "htm" || suffix == "xhtml")
+        return m_settings->openHtmlInEditor();
+    const auto kind = TextExtract::category(info);
+    return m_settings->openCodeInEditor() && (kind == "code" || (kind == "texte" && suffix == "md"));
+}
+
+void Backend::openInEditor(const QString &path) {
+    const auto command = m_settings->editorCommand();
+    if (QStandardPaths::findExecutable(command).isEmpty()) {
+        setError(command == "code"
+                     ? tr("Visual Studio Code n'est pas installé. Installe-le avec « sudo pacman -S code », ou choisis "
+                          "un autre éditeur dans les réglages (Ctrl+,).")
+                     : tr("L'éditeur « %1 » est introuvable. Choisis-en un autre dans les réglages (Ctrl+,).")
+                           .arg(command));
+        return;
+    }
+    if (!QProcess::startDetached(command, {path}))
+        setError(tr("Impossible de lancer « %1 ».").arg(command));
+    else
+        setStatus(tr("Ouvert dans %1 : %2").arg(command, QFileInfo(path).fileName()));
+}
 
 QString Backend::outline(const QString &root, int depth, int limit) {
     QStringList lines;

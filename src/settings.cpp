@@ -3,6 +3,9 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QRegularExpression>
+#include <QStandardPaths>
+#include <QVariantMap>
 
 static QString defaultFile() {
     return QDir::homePath() + "/.config/flair/flair.conf";
@@ -65,3 +68,46 @@ void Settings::setCloneDirectory(const QString &v) {
         path = QDir::homePath() + path.mid(1);
     put("github/cloneDirectory", path);
 }
+
+// Orange unless the user picks otherwise; "theme" hands the choice back to Vex.
+QString Settings::accentColor() const { return get("appearance/accent", "#ff8a3d"); }
+
+void Settings::setAccentColor(const QString &v) {
+    static const QRegularExpression hex("^#[0-9a-fA-F]{6}$");
+    const auto value = v.trimmed();
+    if (value == "theme" || hex.match(value).hasMatch())
+        put("appearance/accent", value.toLower());
+}
+
+static const QList<QPair<QString, QString>> &knownEditors() {
+    static const QList<QPair<QString, QString>> editors{
+        {"code", "Visual Studio Code"}, {"code-oss", "Code - OSS"}, {"codium", "VSCodium"},
+        {"zed", "Zed"},                 {"subl", "Sublime Text"},  {"kate", "Kate"},
+        {"gnome-text-editor", "Éditeur de texte GNOME"}};
+    return editors;
+}
+
+QVariantList Settings::installedEditors() const {
+    QVariantList list;
+    for (const auto &e : knownEditors())
+        if (!QStandardPaths::findExecutable(e.first).isEmpty())
+            list.append(QVariantMap{{"command", e.first}, {"name", e.second}});
+    return list;
+}
+
+QString Settings::editorCommand() const {
+    const auto stored = m_settings.value("editor/command").toString().trimmed();
+    if (!stored.isEmpty())
+        return stored;
+    // Default to the first editor that's installed, VS Code first.
+    for (const auto &e : knownEditors())
+        if (!QStandardPaths::findExecutable(e.first).isEmpty())
+            return e.first;
+    return "code";
+}
+
+void Settings::setEditorCommand(const QString &v) { put("editor/command", v.trimmed()); }
+bool Settings::openHtmlInEditor() const { return get("editor/html", "true") == "true"; }
+bool Settings::openCodeInEditor() const { return get("editor/code", "true") == "true"; }
+void Settings::setOpenHtmlInEditor(bool v) { put("editor/html", v ? "true" : "false"); }
+void Settings::setOpenCodeInEditor(bool v) { put("editor/code", v ? "true" : "false"); }

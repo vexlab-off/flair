@@ -84,6 +84,17 @@ ApplicationWindow {
     Shortcut { sequence: "Shift+S"; context: Qt.ApplicationShortcut; enabled: browsing && !win.inGitHub; onActivated: backend.smartSort() }
     Shortcut { sequence: "I"; context: Qt.ApplicationShortcut; enabled: browsing && !win.inGitHub; onActivated: backend.buildIndex() }
     Shortcut { sequence: "D"; context: Qt.ApplicationShortcut; enabled: browsing && !win.inGitHub; onActivated: backend.explainChanges() }
+    Shortcut {
+        sequence: "E"; context: Qt.ApplicationShortcut; enabled: browsing
+        onActivated: {
+            if (win.inGitHub) {
+                const repo = github.at(repoList.currentIndex)
+                if (repo.localPath) backend.openInEditor(repo.localPath)
+            } else {
+                backend.openInEditor(win.selectedPath || backend.currentPath)
+            }
+        }
+    }
     Shortcut { sequence: "R"; context: Qt.ApplicationShortcut; enabled: browsing && win.inGitHub; onActivated: github.refresh() }
     Shortcut {
         sequence: "G"; context: Qt.ApplicationShortcut; enabled: browsing

@@ -9,7 +9,8 @@ Rectangle {
     readonly property var groups: [
         { title: "Naviguer", icon: "folder", keys: [
             ["↑ ↓  ·  J K", "Se déplacer"],
-            ["Entrée  ·  →  ·  L", "Ouvrir"],
+            ["Entrée  ·  →  ·  L", "Ouvrir (HTML et code : dans l'éditeur)"],
+            ["E", "Ouvrir dans l'éditeur de code"],
             ["Retour  ·  ←  ·  H", "Dossier parent"],
             ["~", "Dossier personnel"],
             ["Ctrl+L", "Aller à un chemin"],

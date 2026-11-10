@@ -10,5 +10,6 @@
         <file alias="Icon.qml">Icon.qml</file>
         <file alias="Logo.qml">Logo.qml</file>
         <file alias="Keycap.qml">Keycap.qml</file>
+        <file alias="brands.js">brands.js</file>
     </qresource>
 </RCC>

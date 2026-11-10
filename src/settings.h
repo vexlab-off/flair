@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QSettings>
+#include <QVariantList>
 
 // Where the AI lives and which engine each kind of work goes to. Stored in
 // ~/.config/flair/flair.conf (mode 0600, since it may hold an API key).
@@ -16,6 +17,10 @@ class Settings : public QObject {
     Q_PROPERTY(QString summaryEngine READ summaryEngine WRITE setSummaryEngine NOTIFY changed)
     Q_PROPERTY(QString heavyEngine READ heavyEngine WRITE setHeavyEngine NOTIFY changed)
     Q_PROPERTY(QString cloneDirectory READ cloneDirectory WRITE setCloneDirectory NOTIFY changed)
+    Q_PROPERTY(QString accentColor READ accentColor WRITE setAccentColor NOTIFY changed)
+    Q_PROPERTY(QString editorCommand READ editorCommand WRITE setEditorCommand NOTIFY changed)
+    Q_PROPERTY(bool openHtmlInEditor READ openHtmlInEditor WRITE setOpenHtmlInEditor NOTIFY changed)
+    Q_PROPERTY(bool openCodeInEditor READ openCodeInEditor WRITE setOpenCodeInEditor NOTIFY changed)
 
 public:
     explicit Settings(const QString &file = {}, QObject *parent = nullptr);
@@ -33,6 +38,12 @@ public:
     QString heavyEngine() const;
     // Where repositories opened from the GitHub view get cloned.
     QString cloneDirectory() const;
+    // "theme" to follow Vex, or a #rrggbb colour.
+    QString accentColor() const;
+    // The program files open in: a command name such as code, codium or zed.
+    QString editorCommand() const;
+    bool openHtmlInEditor() const;
+    bool openCodeInEditor() const;
 
     void setLocalUrl(const QString &v);
     void setLocalModel(const QString &v);
@@ -42,6 +53,13 @@ public:
     void setSummaryEngine(const QString &v);
     void setHeavyEngine(const QString &v);
     void setCloneDirectory(const QString &v);
+    void setAccentColor(const QString &v);
+    void setEditorCommand(const QString &v);
+    void setOpenHtmlInEditor(bool v);
+    void setOpenCodeInEditor(bool v);
+
+    // Code editors installed on this machine, as {command, name} maps.
+    Q_INVOKABLE QVariantList installedEditors() const;
 
 signals:
     void changed();

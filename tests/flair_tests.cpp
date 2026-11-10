@@ -69,6 +69,33 @@ private slots:
                  QFileDevice::Permissions());
     }
 
+    void accentAndEditorSettings() {
+        QTemporaryDir dir;
+        Settings settings(dir.path() + "/flair.conf");
+        QCOMPARE(settings.accentColor(), QString("#ff8a3d")); // orange by default
+        settings.setAccentColor("not a colour");
+        QCOMPARE(settings.accentColor(), QString("#ff8a3d"));
+        settings.setAccentColor("#9B7BFF");
+        QCOMPARE(settings.accentColor(), QString("#9b7bff"));
+        settings.setAccentColor("theme");
+        QCOMPARE(settings.accentColor(), QString("theme"));
+        QVERIFY(settings.openHtmlInEditor());
+        settings.setOpenHtmlInEditor(false);
+        QVERIFY(!settings.openHtmlInEditor());
+        settings.setEditorCommand("zed");
+        QCOMPARE(settings.editorCommand(), QString("zed"));
+    }
+
+    void accentOverrideWinsOverTheme() {
+        QTemporaryDir dir;
+        touch(dir.path() + "/theme/colors.toml", "accent = \"#e0a030\"\n");
+        Theme theme(dir.path());
+        theme.setOverride("#ff8a3d");
+        QCOMPARE(theme.highlight().name(), QString("#ff8a3d"));
+        theme.setOverride("theme");
+        QCOMPARE(theme.highlight().name(), QString("#e0a030"));
+    }
+
     // ------------------------------------------------------------ AI wire formats
     void sseSplitsAcrossChunks() {
         AiClient::SseParser parser;
