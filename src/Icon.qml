@@ -50,7 +50,13 @@ Item {
         check: "M5 12.5l4.5 4.5L19 7",
         alert: "M12 4 2.5 20h19zM12 10v4.5M12 17.5v.01",
         arrowUp: "M12 19V5M6 11l6-6 6 6",
-        close: "M6 6l12 12M18 6 6 18"
+        close: "M6 6l12 12M18 6 6 18",
+        phone: "M7 3h10a1.5 1.5 0 0 1 1.5 1.5v15A1.5 1.5 0 0 1 17 21H7a1.5 1.5 0 0 1-1.5-1.5v-15A1.5 1.5 0 0 1 7 3zM11 18h2",
+        expand: "M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5",
+        shrink: "M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5",
+        minus: "M5 12h14",
+        plus: "M12 5v14M5 12h14",
+        globe: "M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3c-2.5 2.6-3.8 5.6-3.8 9s1.3 6.4 3.8 9"
     })
 
     // The GitHub mark is a filled 16-unit drawing (Octicons, MIT).

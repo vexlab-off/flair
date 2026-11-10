@@ -2,6 +2,7 @@
 
 #include "plan.h"
 
+#include <QFileSystemWatcher>
 #include <QObject>
 #include <QVariantList>
 #include <QVector>
@@ -32,6 +33,10 @@ class Backend : public QObject {
     Q_PROPERTY(QString previewMeta READ previewMeta NOTIFY previewChanged)
     Q_PROPERTY(QString previewText READ previewText NOTIFY previewChanged)
     Q_PROPERTY(QString previewEngine READ previewEngine NOTIFY previewChanged)
+    // The HTML file shown rendered in the preview, or empty.
+    Q_PROPERTY(QString previewHtml READ previewHtml NOTIFY previewChanged)
+    // "render" or "summary", for an HTML preview.
+    Q_PROPERTY(QString previewMode READ previewMode WRITE setPreviewMode NOTIFY previewChanged)
 
     Q_PROPERTY(QVariantList searchResults READ searchResults NOTIFY searchChanged)
     Q_PROPERTY(QString searchQuery READ searchQuery NOTIFY searchChanged)
@@ -70,6 +75,10 @@ public:
     QString previewMeta() const { return m_previewMeta; }
     QString previewText() const { return m_previewText; }
     QString previewEngine() const { return m_previewEngine; }
+    QString previewHtml() const { return m_previewHtml; }
+    QString previewMode() const { return m_previewMode; }
+    void setPreviewMode(const QString &mode);
+    static bool isHtml(const QString &path);
     QVariantList searchResults() const { return m_searchResults; }
     QString searchQuery() const { return m_searchQuery; }
     QVariantList chatLog() const { return m_chatLog; }
@@ -96,7 +105,9 @@ public:
     Q_INVOKABLE void reveal(const QString &path);
 
     // AI
+    // HTML pages are rendered; everything else is summarized by the AI.
     Q_INVOKABLE void summarize(const QString &path);
+    Q_INVOKABLE void summarizeWithAi(const QString &path);
     Q_INVOKABLE void search(const QString &query);
     Q_INVOKABLE void buildIndex();
     Q_INVOKABLE void command(const QString &request);
@@ -143,6 +154,8 @@ signals:
     void enginesChanged();
     // Asks the view to put the cursor on a path after it moves there.
     void selectPath(const QString &path);
+    // The rendered HTML file changed on disk; the view reloads it.
+    void previewHtmlModified();
 
 private:
     struct Batch {
@@ -174,6 +187,8 @@ private:
     int m_busy = 0;
 
     QString m_previewTitle, m_previewMeta, m_previewText, m_previewEngine;
+    QString m_previewHtml, m_previewMode = "render";
+    QFileSystemWatcher m_htmlWatcher;
     QVariantList m_searchResults;
     QString m_searchQuery;
     QVariantList m_chatLog;

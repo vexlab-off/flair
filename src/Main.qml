@@ -52,6 +52,7 @@ ApplicationWindow {
     }
     function handleEscape() {
         if (help.visible) { help.visible = false; return }
+        if (side.wide) { side.wide = false; return }
         if (inputMode !== "") {
             if (inputMode === "filter") github.filter = ""
             closeInput(); return
@@ -94,6 +95,10 @@ ApplicationWindow {
                 backend.openInEditor(win.selectedPath || backend.currentPath)
             }
         }
+    }
+    Shortcut {
+        sequence: "F"; context: Qt.ApplicationShortcut; enabled: browsing && backend.previewHtml !== ""
+        onActivated: { backend.panel = "preview"; side.wide = !side.wide }
     }
     Shortcut { sequence: "R"; context: Qt.ApplicationShortcut; enabled: browsing && win.inGitHub; onActivated: github.refresh() }
     Shortcut {
@@ -284,6 +289,7 @@ ApplicationWindow {
 
                 // Files or repositories
                 Rectangle {
+                    visible: !side.wide
                     SplitView.fillWidth: true
                     SplitView.minimumWidth: 320
                     color: theme.surface
@@ -453,6 +459,8 @@ ApplicationWindow {
 
                 SidePanel {
                     id: side
+                    SplitView.fillWidth: wide
+                    onWideToggled: wide = !wide
                     SplitView.preferredWidth: Math.round(win.width * 0.34)
                     SplitView.minimumWidth: 290
                     onRevealRequested: (path) => backend.reveal(path)

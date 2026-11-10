@@ -3,7 +3,9 @@
 Un explorateur de fichiers pour Vex qui lit, cherche, range et répond grâce à l'IA,
 entièrement au clavier.
 
-- **Aperçu** : Espace résume le fichier ou le dossier sélectionné (texte, code, PDF).
+- **Aperçu** : Espace affiche une page HTML rendue (CSS, JavaScript, rechargement
+  automatique à chaque enregistrement, zoom, largeur mobile, `F` pour agrandir), et résume
+  par l'IA tout le reste (texte, code, PDF). `flair page.html` ouvre directement l'aperçu.
 - **Recherche par le sens** : `I` indexe le dossier avec un modèle d'embeddings local,
   puis `/` trouve « la facture d'électricité de l'an dernier » sans connaître son nom.
   Sans index, la recherche porte sur les noms.
@@ -59,7 +61,8 @@ Si un moteur manque, la fenêtre le dit et explique quoi faire.
 | ~ | Dossier personnel |
 | Ctrl+L | Aller à un chemin |
 | . | Fichiers cachés |
-| Espace | Résumer la sélection |
+| Espace | Aperçu : page HTML rendue, sinon résumé par l'IA |
+| F | Agrandir l'aperçu HTML |
 | / | Rechercher |
 | I | Indexer ce dossier |
 | C | Discuter avec ce dossier |

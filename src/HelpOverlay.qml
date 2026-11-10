@@ -17,7 +17,8 @@ Rectangle {
             [".", "Fichiers cachés"]
         ]},
         { title: "IA", icon: "sparkle", keys: [
-            ["Espace", "Résumer la sélection"],
+            ["Espace", "Aperçu : page HTML rendue, sinon résumé"],
+            ["F", "Agrandir l'aperçu HTML"],
             ["/", "Rechercher (par le sens si indexé)"],
             ["I", "Indexer ce dossier"],
             ["C", "Discuter avec ce dossier"],

@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
+import QtWebEngine
 
 // The right-hand side: where every AI result shows up.
 Rectangle {
@@ -12,6 +13,34 @@ Rectangle {
     border.width: 1
 
     property alias results: resultsList
+    property real zoom: 0.8
+    property bool mobile: false
+    property bool wide: false
+    property string loadError: ""
+    readonly property bool isPage: backend.previewHtml !== ""
+    readonly property bool rendering: isPage && backend.previewMode === "render" && backend.panel === "preview"
+    signal wideToggled()
+
+    function fileUrl(path) {
+        return "file://" + path.split("/").map(encodeURIComponent).join("/")
+    }
+
+    component ToolButton2: Rectangle {
+        id: tb
+        property string icon
+        property string tip
+        property bool active: false
+        signal clicked()
+        width: 26
+        height: 26
+        radius: 6
+        color: active ? theme.alpha(theme.highlight, 0.16) : (tbHover.containsMouse ? theme.raised : "transparent")
+        Icon { anchors.centerIn: parent; name: tb.icon; size: 14; color: tb.active ? theme.highlight : theme.textDim }
+        ToolTip.visible: tbHover.containsMouse
+        ToolTip.text: tb.tip
+        ToolTip.delay: 400
+        MouseArea { id: tbHover; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: tb.clicked() }
+    }
     readonly property bool narrow: width < 440
     signal revealRequested(string path)
 
@@ -145,26 +174,66 @@ Rectangle {
                     width: parent.width - 40
                     visible: !backend.previewTitle
                     icon: "sparkle"
-                    title: "Résumé par l'IA"
-                    body: "Sélectionne un fichier, un dossier ou un dépôt et appuie sur Espace. D explique les changements Git en cours."
+                    title: "Aperçu"
+                    body: "Sélectionne un fichier, un dossier ou un dépôt et appuie sur Espace : les pages HTML s'affichent rendues, le reste est résumé par l'IA. D explique les changements Git en cours."
                     keys: ["Espace", "D"]
                 }
                 ColumnLayout {
                     anchors.fill: parent
                     visible: backend.previewTitle !== ""
                     spacing: 6
-                    PanelTitle { text: backend.previewTitle }
                     RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+                        PanelTitle { text: backend.previewTitle }
+                        // Render or AI summary, for an HTML page.
+                        Rectangle {
+                            visible: panel.isPage
+                            Layout.preferredHeight: 28
+                            Layout.preferredWidth: modeRow.implicitWidth + 6
+                            radius: 8
+                            color: theme.background
+                            border.color: theme.line
+                            Row {
+                                id: modeRow
+                                anchors.centerIn: parent
+                                spacing: 2
+                                Repeater {
+                                    model: [{ key: "render", label: "Rendu", icon: "globe" }, { key: "summary", label: "Résumé IA", icon: "sparkle" }]
+                                    delegate: Rectangle {
+                                        required property var modelData
+                                        readonly property bool active: backend.previewMode === modelData.key
+                                        height: 22
+                                        width: modeContent.implicitWidth + 16
+                                        radius: 6
+                                        color: active ? theme.raised : "transparent"
+                                        Row {
+                                            id: modeContent
+                                            anchors.centerIn: parent
+                                            spacing: 5
+                                            Icon { anchors.verticalCenter: parent.verticalCenter; name: modelData.icon; size: 12; color: parent.parent.active ? theme.highlight : theme.textFaint }
+                                            Text { anchors.verticalCenter: parent.verticalCenter; text: modelData.label; font.pixelSize: 11; color: parent.parent.active ? theme.text : theme.textDim }
+                                        }
+                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: backend.previewMode = modelData.key }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    RowLayout {
+                        Layout.fillWidth: true
                         spacing: 8
                         Text {
+                            Layout.fillWidth: true
+                            // Narrow panels give the row to the page tools.
+                            opacity: panel.rendering && panel.narrow ? 0 : 1
                             text: backend.previewMeta
                             color: theme.textDim
                             font.pixelSize: 12
                             elide: Text.ElideRight
-                            Layout.maximumWidth: panel.width - 140
                         }
                         Rectangle {
-                            visible: backend.previewEngine !== ""
+                            visible: backend.previewEngine !== "" && !panel.rendering
                             implicitWidth: engineRow.implicitWidth + 14
                             implicitHeight: 20
                             radius: 10
@@ -183,9 +252,94 @@ Rectangle {
                                 }
                             }
                         }
+                        // Page tools
+                        Row {
+                            visible: panel.rendering
+                            spacing: 2
+                            ToolButton2 { icon: "minus"; tip: "Zoom arrière"; onClicked: panel.zoom = Math.max(0.3, Math.round((panel.zoom - 0.1) * 10) / 10) }
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 38
+                                horizontalAlignment: Text.AlignHCenter
+                                text: Math.round(panel.zoom * 100) + " %"
+                                color: theme.textDim
+                                font.pixelSize: 11
+                                font.features: { "tnum": 1 }
+                                MouseArea { anchors.fill: parent; onClicked: panel.zoom = 1 }
+                            }
+                            ToolButton2 { icon: "plus"; tip: "Zoom avant"; onClicked: panel.zoom = Math.min(3, Math.round((panel.zoom + 0.1) * 10) / 10) }
+                            ToolButton2 { icon: "phone"; tip: "Largeur mobile (390 px)"; active: panel.mobile; onClicked: panel.mobile = !panel.mobile }
+                            ToolButton2 { icon: "refresh"; tip: "Recharger"; onClicked: web.reload() }
+                            ToolButton2 { icon: "code"; tip: "Ouvrir dans l'éditeur (E)"; onClicked: backend.openInEditor(backend.previewHtml) }
+                            ToolButton2 { icon: "external"; tip: "Ouvrir dans le navigateur"; onClicked: backend.openExternally(backend.previewHtml) }
+                            ToolButton2 { icon: panel.wide ? "shrink" : "expand"; tip: panel.wide ? "Réduire (F)" : "Agrandir (F)"; active: panel.wide; onClicked: panel.wideToggled() }
+                        }
                     }
-                    Rectangle { Layout.fillWidth: true; Layout.topMargin: 8; height: 1; color: theme.line }
+                    Rectangle { Layout.fillWidth: true; Layout.topMargin: 6; height: 1; color: theme.line }
+
+                    // The rendered page
+                    Rectangle {
+                        visible: panel.rendering
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        Layout.topMargin: 6
+                        radius: 8
+                        color: panel.mobile ? "transparent" : "white"
+                        clip: true
+
+                        Rectangle {
+                            id: frame
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            width: panel.mobile ? Math.min(parent.width, 390 * panel.zoom + 2) : parent.width
+                            height: parent.height
+                            radius: panel.mobile ? 14 : 8
+                            color: "white"
+                            border.color: panel.mobile ? theme.line : "transparent"
+                            border.width: panel.mobile ? 2 : 0
+
+                            WebEngineView {
+                                id: web
+                                anchors.fill: parent
+                                anchors.margins: panel.mobile ? 2 : 0
+                                zoomFactor: panel.zoom
+                                url: panel.isPage ? panel.fileUrl(backend.previewHtml) : "about:blank"
+                                // No cookies or storage kept between previews.
+                                profile: WebEngineProfile { offTheRecord: true }
+                                settings.javascriptCanOpenWindows: false
+                                settings.localContentCanAccessRemoteUrls: true
+                                settings.focusOnNavigationEnabled: false
+                                // The preview follows links between local pages; anything on
+                                // the web opens in the browser instead.
+                                onNavigationRequested: (request) => {
+                                    const url = request.url.toString()
+                                    if (!request.isMainFrame || url.startsWith("file://") || url === "about:blank" || url.startsWith("data:"))
+                                        return
+                                    request.reject()
+                                    Qt.openUrlExternally(request.url)
+                                }
+                                onNewWindowRequested: (request) => Qt.openUrlExternally(request.requestedUrl)
+                                onLoadingChanged: (info) => {
+                                    if (info.status === WebEngineView.LoadFailedStatus && info.url.toString().startsWith("file://"))
+                                        panel.loadError = info.errorString
+                                    else if (info.status === WebEngineView.LoadSucceededStatus)
+                                        panel.loadError = ""
+                                }
+                                Connections {
+                                    target: backend
+                                    function onPreviewHtmlModified() { web.reload() }
+                                }
+                            }
+                        }
+                        Text {
+                            anchors.centerIn: parent
+                            visible: panel.loadError !== ""
+                            text: "La page n'a pas pu s'afficher : " + panel.loadError
+                            color: "#a00"
+                        }
+                    }
+
                     ScrollView {
+                        visible: !panel.rendering
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         clip: true

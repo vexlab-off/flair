@@ -1,6 +1,7 @@
 // flair — a file explorer that reads, finds, sorts, and answers with AI.
 
 #include <QDir>
+#include <QFileInfo>
 #include <QFont>
 #include <QGuiApplication>
 #include <QIcon>
@@ -8,6 +9,7 @@
 #include <QQmlContext>
 #include <QQuickStyle>
 #include <QUrl>
+#include <QtWebEngineQuick/qtwebenginequickglobal.h>
 
 #include "ai.h"
 #include "backend.h"
@@ -19,6 +21,8 @@
 #include "theme.h"
 
 int main(int argc, char *argv[]) {
+    // The HTML preview runs Chromium, which has to be set up before the app.
+    QtWebEngineQuick::initialize();
     QGuiApplication app(argc, argv);
     app.setApplicationName("flair");
     app.setApplicationVersion("0.1.0");
@@ -62,6 +66,13 @@ int main(int argc, char *argv[]) {
     engine.load(QUrl("qrc:/Main.qml"));
     if (engine.rootObjects().isEmpty())
         return 1;
+
+    // `flair page.html` opens its folder with the page selected and previewed.
+    if (QFileInfo(start).isFile()) {
+        backend.navigate(start);
+        if (Backend::isHtml(start))
+            backend.summarize(QFileInfo(start).absoluteFilePath());
+    }
 
     return app.exec();
 }

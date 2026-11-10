@@ -337,6 +337,13 @@ private slots:
         QVERIFY(TextExtract::readText(dir.path() + "/c.png", 100).isEmpty());
     }
 
+    void recognisesHtml() {
+        QVERIFY(Backend::isHtml("/a/index.html"));
+        QVERIFY(Backend::isHtml("/a/PAGE.HTM"));
+        QVERIFY(!Backend::isHtml("/a/style.css"));
+        QVERIFY(!Backend::isHtml("/a/html"));
+    }
+
     void outlineListsTree() {
         QTemporaryDir dir;
         touch(dir.path() + "/top.txt");

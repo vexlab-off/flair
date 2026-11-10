@@ -44,6 +44,13 @@ Backend::Backend(Settings *settings, AiClient *ai, FileModel *files, GitInfo *gi
     connect(m_settings, &Settings::changed, this, updateCloneRoots);
     connect(m_files, &FileModel::directoryChanged, this, &Backend::currentPathChanged);
     connect(m_settings, &Settings::changed, this, &Backend::probeEngines);
+    connect(&m_htmlWatcher, &QFileSystemWatcher::fileChanged, this, [this](const QString &path) {
+        if (path != m_previewHtml)
+            return;
+        if (QFileInfo::exists(path) && !m_htmlWatcher.files().contains(path))
+            m_htmlWatcher.addPath(path);
+        emit previewHtmlModified();
+    });
     connect(m_indexer, &Indexer::failed, this, &Backend::setError);
     connect(m_indexer, &Indexer::finished, this, [this] {
         setStatus(tr("Index prêt : %1 fichiers sous %2.").arg(m_indexer->size()).arg(m_indexer->root()));
@@ -209,10 +216,52 @@ QString Backend::outline(const QString &root, int depth, int limit) {
 
 // ---------------------------------------------------------------- preview
 
+bool Backend::isHtml(const QString &path) {
+    const auto suffix = QFileInfo(path).suffix().toLower();
+    return suffix == "html" || suffix == "htm" || suffix == "xhtml";
+}
+
 void Backend::summarize(const QString &path) {
+    if (!isHtml(path) || !QFileInfo(path).isFile()) {
+        summarizeWithAi(path);
+        return;
+    }
+    ++m_previewGeneration;
+    setPanel("preview");
+    const QFileInfo info(path);
+    m_previewTitle = info.fileName();
+    m_previewMeta = tr("Page HTML · %1 · se recharge à chaque enregistrement").arg(TextExtract::humanSize(info.size()));
+    m_previewText.clear();
+    m_previewEngine.clear();
+    m_previewHtml = info.absoluteFilePath();
+    m_previewMode = "render";
+    // Editors save by replacing the file, which drops the watch; re-arm on each change.
+    if (!m_htmlWatcher.files().isEmpty())
+        m_htmlWatcher.removePaths(m_htmlWatcher.files());
+    m_htmlWatcher.addPath(m_previewHtml);
+    emit previewChanged();
+}
+
+void Backend::setPreviewMode(const QString &mode) {
+    if (mode == m_previewMode || m_previewHtml.isEmpty())
+        return;
+    m_previewMode = mode;
+    emit previewChanged();
+    if (mode == "summary" && m_previewText.isEmpty()) {
+        const auto html = m_previewHtml;
+        summarizeWithAi(html);
+        // The AI summary belongs to the same page: keep the render one click away.
+        m_previewHtml = html;
+        m_previewMode = "summary";
+        emit previewChanged();
+    }
+}
+
+void Backend::summarizeWithAi(const QString &path) {
     const QFileInfo info(path);
     if (!info.exists())
         return;
+    m_previewHtml.clear();
     const int generation = ++m_previewGeneration;
     setPanel("preview");
     m_previewTitle = info.fileName().isEmpty() ? path : info.fileName();
@@ -679,6 +728,7 @@ void Backend::explainChanges() {
 
     const int generation = ++m_previewGeneration;
     setPanel("preview");
+    m_previewHtml.clear();
     m_previewTitle = tr("Changements · %1 (%2)").arg(QFileInfo(m_git->top()).fileName(), m_git->branch());
     m_previewMeta = tr("%1 fichiers modifiés%2").arg(m_git->changedCount()).arg(truncated ? tr(" · diff tronqué") : "");
     m_previewText = tr("Lecture du diff…");
@@ -840,6 +890,7 @@ void Backend::summarizeRepo(int row) {
     // Not cloned: read the README straight from GitHub.
     const int generation = ++m_previewGeneration;
     setPanel("preview");
+    m_previewHtml.clear();
     m_previewTitle = fullName;
     m_previewMeta = tr("Dépôt GitHub · pas cloné");
     m_previewEngine.clear();
