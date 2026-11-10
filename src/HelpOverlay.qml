@@ -15,7 +15,11 @@ Rectangle {
             ["~", "Dossier personnel"],
             ["Ctrl+L", "Aller à un chemin"],
             [".", "Fichiers cachés"],
-            ["O", "Changer le tri (auto, nom, date, taille, type)"]
+            ["O", "Changer le tri (auto, nom, date, taille, type)"],
+            ["Clic droit  ·  Menu", "Actions sur le fichier ou dossier"],
+            ["F2  ·  Suppr", "Renommer  ·  mettre à la corbeille"],
+            ["Ctrl+Maj+N", "Nouveau dossier"],
+            ["Alt+Entrée", "Propriétés"]
         ]},
         { title: "IA", icon: "sparkle", keys: [
             ["Espace", "Aperçu : page HTML rendue, sinon résumé"],

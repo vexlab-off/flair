@@ -59,6 +59,10 @@ public:
     void setHtmlOpenMode(const QString &v);
     void setOpenCodeInEditor(bool v);
 
+    // The file manager to restore when flair stops being the default.
+    QString previousFileManager() const { return m_settings.value("system/previousFileManager").toString(); }
+    void setPreviousFileManager(const QString &v) { put("system/previousFileManager", v); }
+
     // Code editors installed on this machine, as {command, name} maps.
     Q_INVOKABLE QVariantList installedEditors() const;
 

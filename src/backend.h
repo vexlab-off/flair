@@ -5,6 +5,7 @@
 #include <QFileSystemWatcher>
 #include <QObject>
 #include <QVariantList>
+#include <QVariantMap>
 #include <QVector>
 
 class AiClient;
@@ -55,6 +56,8 @@ class Backend : public QObject {
     Q_PROPERTY(bool localOnline READ localOnline NOTIFY enginesChanged)
     Q_PROPERTY(QStringList localModels READ localModels NOTIFY enginesChanged)
     Q_PROPERTY(bool claudeReady READ claudeReady NOTIFY enginesChanged)
+    // Whether flair opens folders for the whole system (xdg default + FileManager1).
+    Q_PROPERTY(bool isDefaultFileManager READ isDefaultFileManager NOTIFY defaultFileManagerChanged)
 
 public:
     Backend(Settings *settings, AiClient *ai, FileModel *files, GitInfo *git, Indexer *indexer,
@@ -137,6 +140,40 @@ public:
     Q_INVOKABLE void probeEngines();
     Q_INVOKABLE void clearError();
 
+    // ---- Right-click actions (actions.cpp)
+    Q_INVOKABLE void copyPath(const QString &path);
+    Q_INVOKABLE void openTerminal(const QString &directory);
+    Q_INVOKABLE bool renamePath(const QString &path, const QString &newName);
+    Q_INVOKABLE bool createFolder(const QString &name);
+    // Moves to the system trash; Ctrl+Z brings it back.
+    Q_INVOKABLE void trash(const QString &path);
+    Q_INVOKABLE QVariantMap properties(const QString &path) const;
+    Q_INVOKABLE void computeFolderSize(const QString &path);
+    Q_INVOKABLE void requestProperties(const QString &path) { emit propertiesRequested(path); }
+
+    bool isDefaultFileManager() const;
+    Q_INVOKABLE void setDefaultFileManager(bool enable);
+
+    // ---- Git and GitHub for a folder (actions.cpp)
+    // {isRepo, hasCommits, hasRemote, webUrl, branch, changes}
+    Q_INVOKABLE QVariantMap gitState(const QString &directory) const;
+    Q_INVOKABLE void gitInit(const QString &directory);
+    Q_INVOKABLE QVariantList gitignoreTemplates() const;
+    // Template keys that match what's in the folder (package.json → node…).
+    Q_INVOKABLE QStringList detectGitignore(const QString &directory) const;
+    Q_INVOKABLE bool writeGitignore(const QString &directory, const QStringList &keys);
+    Q_INVOKABLE bool writeLicense(const QString &directory);
+    Q_INVOKABLE void draftReadme(const QString &directory);
+    // Creates a new file; never replaces an existing one.
+    Q_INVOKABLE bool writeNewFile(const QString &path, const QString &text);
+    Q_INVOKABLE void publishRepo(const QString &directory, const QString &name, const QString &description,
+                                 bool isPrivate);
+    Q_INVOKABLE void suggestCommitMessage(const QString &directory);
+    Q_INVOKABLE void commit(const QString &directory, const QString &message, bool push);
+
+    static QString gitignoreText(const QStringList &keys);
+    static QStringList detectGitignoreIn(const QString &directory);
+
     // A text outline of a folder tree for the model: names, sizes, dates.
     static QString outline(const QString &root, int depth, int limit);
 
@@ -156,6 +193,13 @@ signals:
     void selectPath(const QString &path);
     // The rendered HTML file changed on disk; the view reloads it.
     void previewHtmlModified();
+    void propertiesRequested(const QString &path);
+    void folderSizeReady(const QString &path, qint64 bytes, int files);
+    void commitMessageReady(const QString &message);
+    void readmeDraftReady(const QString &directory, const QString &text);
+    // A long git/gh job finished; dialogs close or show the error.
+    void gitJobFinished(bool ok, const QString &message);
+    void defaultFileManagerChanged();
 
 private:
     struct Batch {
@@ -171,6 +215,9 @@ private:
     void sendChat(const QString &context);
     void setView(const QString &view);
     void cloneInto(const QString &repository, const QString &parent, bool open);
+    // Runs commands one after another in a folder, stopping at the first failure.
+    void runSteps(const QString &directory, QList<QStringList> steps, const QString &doneMessage);
+    void pushUndo(const QString &label, const QVector<PlanAction> &applied);
     void summarizeText(const QString &title, const QString &meta, const QString &prompt);
 
     Settings *m_settings;

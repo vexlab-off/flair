@@ -81,7 +81,7 @@ void Settings::setAccentColor(const QString &v) {
 
 static const QList<QPair<QString, QString>> &knownEditors() {
     static const QList<QPair<QString, QString>> editors{
-        {"code", "Visual Studio Code"}, {"code-oss", "Code - OSS"}, {"codium", "VSCodium"},
+        {"flaircode", "Flair Code"},    {"code", "Visual Studio Code"}, {"code-oss", "Code - OSS"}, {"codium", "VSCodium"},
         {"zed", "Zed"},                 {"subl", "Sublime Text"},  {"kate", "Kate"},
         {"gnome-text-editor", "Éditeur de texte GNOME"}};
     return editors;

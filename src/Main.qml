@@ -57,6 +57,7 @@ ApplicationWindow {
             if (inputMode === "filter") github.filter = ""
             closeInput(); return
         }
+        if (contextMenu.visible) { contextMenu.close(); return }
         if (backend.busy) { backend.cancel(); return }
         if (backend.panel === "plan" && backend.planItems.length) { backend.discardPlan(); return }
         if (inGitHub && github.filter !== "") { github.filter = ""; return }
@@ -66,6 +67,12 @@ ApplicationWindow {
     function summarizeCurrent() {
         if (inGitHub) backend.summarizeRepo(repoList.currentIndex)
         else backend.summarize(win.selectedPath || backend.currentPath)
+    }
+    function openContextMenuForSelection() {
+        const item = list.currentItem
+        if (!item || !win.selectedPath) return
+        const p = item.mapToItem(win.contentItem, 40, item.height)
+        contextMenu.openFor(win.selectedPath, files.isDirAt(list.currentIndex), false, p.x, p.y)
     }
     function crumbLabel(path) {
         if (path === homePath) return "Accueil"
@@ -101,6 +108,10 @@ ApplicationWindow {
         onActivated: { backend.panel = "preview"; side.wide = !side.wide }
     }
     Shortcut { sequence: "O"; context: Qt.ApplicationShortcut; enabled: browsing && !win.inGitHub; onActivated: files.cycleSort() }
+    Shortcut { sequence: "F2"; context: Qt.ApplicationShortcut; enabled: browsing && !win.inGitHub && win.selectedPath !== ""; onActivated: actions.run("rename", win.selectedPath) }
+    Shortcut { sequence: "Del"; context: Qt.ApplicationShortcut; enabled: browsing && !win.inGitHub && win.selectedPath !== ""; onActivated: actions.run("trash", win.selectedPath) }
+    Shortcut { sequence: "Ctrl+Shift+N"; context: Qt.ApplicationShortcut; enabled: !win.inGitHub; onActivated: actions.run("newFolder", backend.currentPath) }
+    Shortcut { sequences: ["Alt+Return", "Alt+Enter"]; context: Qt.ApplicationShortcut; enabled: browsing && !win.inGitHub; onActivated: actions.run("properties", win.selectedPath || backend.currentPath) }
     Shortcut { sequence: "R"; context: Qt.ApplicationShortcut; enabled: browsing && win.inGitHub; onActivated: github.refresh() }
     Shortcut {
         sequence: "G"; context: Qt.ApplicationShortcut; enabled: browsing
@@ -356,9 +367,27 @@ ApplicationWindow {
                                     if (path.toLowerCase().match(/\.x?html?$/)) backend.summarize(path)
                                 }
                                 onDoubleClicked: backend.activate(index)
+                                onContextRequested: (x, y) => {
+                                    const p = mapToItem(win.contentItem, x, y)
+                                    contextMenu.openFor(path, isDir, false, p.x, p.y)
+                                }
+                            }
+
+                            // Right-click on the empty part: the current folder itself.
+                            MouseArea {
+                                anchors.fill: parent
+                                z: -1
+                                acceptedButtons: Qt.RightButton
+                                onClicked: (mouse) => {
+                                    const p = mapToItem(win.contentItem, mouse.x, mouse.y)
+                                    contextMenu.openFor(backend.currentPath, true, true, p.x, p.y)
+                                }
                             }
 
                             Keys.onPressed: (event) => {
+                                if (event.key === Qt.Key_Menu || (event.key === Qt.Key_F10 && event.modifiers & Qt.ShiftModifier)) {
+                                    win.openContextMenuForSelection(); event.accepted = true; return
+                                }
                                 if (event.modifiers & (Qt.ControlModifier | Qt.AltModifier)) return
                                 switch (event.key) {
                                 case Qt.Key_Return: case Qt.Key_Enter: case Qt.Key_Right: case Qt.Key_L:
@@ -688,6 +717,21 @@ ApplicationWindow {
             if (path.toLowerCase().match(/\.x?html?$/) && backend.previewHtml !== path)
                 backend.summarize(path)
         }
+    }
+
+    FileMenu {
+        id: contextMenu
+        parent: win.contentItem
+        onAction: (key, path) => actions.run(key, path)
+        onClosed: win.focusList()
+    }
+
+    Actions { id: actions }
+
+    // "Show in folder" from another app brings this window forward.
+    Connections {
+        target: fileManagerBus
+        function onRaiseRequested() { win.show(); win.raise(); win.requestActivate() }
     }
 
     HelpOverlay {

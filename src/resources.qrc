@@ -11,5 +11,8 @@
         <file alias="Logo.qml">Logo.qml</file>
         <file alias="Keycap.qml">Keycap.qml</file>
         <file alias="brands.js">brands.js</file>
+        <file alias="FlairDialog.qml">FlairDialog.qml</file>
+        <file alias="FileMenu.qml">FileMenu.qml</file>
+        <file alias="Actions.qml">Actions.qml</file>
     </qresource>
 </RCC>

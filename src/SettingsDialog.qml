@@ -282,6 +282,39 @@ Popup {
 
                 Divider {}
 
+                // ---------------------------------------------- system
+                Section {
+                    icon: "folder"
+                    title: "Système"
+                    intro: "Faire de flair l'explorateur de fichiers de ton ordinateur : les dossiers s'ouvrent dans flair, et « Afficher dans le dossier » depuis le navigateur, VS Code ou un téléchargement aussi."
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 12
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 2
+                            Text { text: "Explorateur de fichiers par défaut"; color: theme.text; font.pixelSize: 13; font.weight: Font.DemiBold }
+                            Text {
+                                Layout.fillWidth: true
+                                text: backend.isDefaultFileManager
+                                      ? "Activé. Désactiver rétablit l'explorateur d'avant (Nautilus)."
+                                      : "Désactivé : Nautilus ouvre les dossiers. Activer est réversible à tout moment ici."
+                                color: theme.textDim
+                                font.pixelSize: 12
+                                wrapMode: Text.Wrap
+                            }
+                        }
+                        Switch {
+                            Material.accent: theme.highlight
+                            checked: backend.isDefaultFileManager
+                            onToggled: backend.setDefaultFileManager(checked)
+                        }
+                    }
+                }
+
+                Divider {}
+
                 // ---------------------------------------------- opening files
                 Section {
                     icon: "code"

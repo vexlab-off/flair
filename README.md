@@ -82,11 +82,31 @@ Si un moteur manque, la fenêtre le dit et explique quoi faire.
 | Ctrl+G | Dossier GitHub (et retour) |
 | R | Recharger les dépôts (dossier GitHub) |
 | Ctrl+Maj+G | Cloner un dépôt par son nom |
+| Clic droit / Menu | Actions sur le fichier ou dossier |
+| F2 | Renommer |
+| Suppr | Mettre à la corbeille |
+| Ctrl+Maj+N | Nouveau dossier |
+| Alt+Entrée | Propriétés |
 | Ctrl+Z / Ctrl+Maj+Z | Annuler / rétablir |
 | 1 2 3 4 | Aperçu, recherche, chat, plan |
 | Ctrl+, | Réglages |
 | ? | Aide |
 | Q | Quitter |
+
+## Clic droit
+
+Sur un fichier ou un dossier : ouvrir, résumer, ouvrir dans l'éditeur ou un terminal,
+copier le chemin, renommer (F2), mettre à la corbeille (Suppr, Ctrl+Z la récupère),
+propriétés (Alt+Entrée). Sur un dossier, la partie **Git et GitHub** initialise un dépôt,
+le publie sur GitHub (privé par défaut), fait un commit et un push avec un message suggéré
+par l'IA, et crée les fichiers du dépôt : `.gitignore` adapté au projet, `README.md` rédigé
+par l'IA et relu par toi, `LICENSE` MIT. Rien d'existant n'est jamais remplacé.
+
+## Explorateur du système
+
+Dans les réglages, « Explorateur de fichiers par défaut » fait ouvrir les dossiers par flair
+et lui fait répondre à « Afficher dans le dossier » des autres applications (le service D-Bus
+`org.freedesktop.FileManager1`). Désactiver rétablit l'explorateur précédent.
 
 Le dossier GitHub utilise l'outil `gh` (`gh auth login` une fois).
 

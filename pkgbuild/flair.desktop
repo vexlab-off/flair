@@ -1,11 +1,14 @@
 [Desktop Entry]
 Type=Application
 Name=Flair
-GenericName=Explorateur de fichiers IA
+GenericName=Explorateur de fichiers
 Comment=Explorateur de fichiers qui résume, cherche par le sens, range et répond avec l'IA
-Exec=flair %f
-Icon=flair
+Keywords=fichiers;dossiers;explorateur;gestionnaire;files;folder;explorer;manager;
+Exec=flair %U
+TryExec=flair
+Icon=/usr/share/icons/hicolor/scalable/apps/flair.svg
 Terminal=false
-Categories=Utility;FileManager;System;
+Categories=System;FileTools;FileManager;Utility;
 MimeType=inode/directory;
 StartupWMClass=flair
+StartupNotify=true

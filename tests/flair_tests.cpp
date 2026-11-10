@@ -371,6 +371,23 @@ private slots:
         QCOMPARE(FileModel::autoSortFor("/somewhere/project"), QString("name"));
     }
 
+    void detectsGitignoreTemplates() {
+        QTemporaryDir dir;
+        touch(dir.path() + "/package.json", "{}");
+        touch(dir.path() + "/app.py");
+        touch(dir.path() + "/PKGBUILD");
+        const auto keys = Backend::detectGitignoreIn(dir.path());
+        QVERIFY(keys.contains("general"));
+        QVERIFY(keys.contains("node"));
+        QVERIFY(keys.contains("python"));
+        QVERIFY(keys.contains("arch"));
+        QVERIFY(!keys.contains("rust"));
+        const auto text = Backend::gitignoreText({"general", "node"});
+        QVERIFY(text.contains("node_modules/"));
+        QVERIFY(text.contains(".DS_Store"));
+        QVERIFY(!text.contains("__pycache__"));
+    }
+
     void recognisesHtml() {
         QVERIFY(Backend::isHtml("/a/index.html"));
         QVERIFY(Backend::isHtml("/a/PAGE.HTM"));

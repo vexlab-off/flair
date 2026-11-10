@@ -13,6 +13,7 @@
 
 #include "ai.h"
 #include "backend.h"
+#include "filemanager1.h"
 #include "filemodel.h"
 #include "github.h"
 #include "gitinfo.h"
@@ -50,8 +51,12 @@ int main(int argc, char *argv[]) {
     GitHubRepos github;
     Backend backend(&settings, &ai, &files, &git, &indexer, &github);
 
-    const auto args = app.arguments();
-    const QString start = args.size() > 1 ? args.at(1) : QDir::currentPath();
+    // Started by D-Bus for "Show in folder" (--dbus), or with a path or file:// URL.
+    QStringList args = app.arguments().mid(1);
+    args.removeAll("--dbus");
+    QString start = args.isEmpty() ? QDir::currentPath() : args.first();
+    if (start.startsWith("file://"))
+        start = QUrl(start).toLocalFile();
     if (!backend.navigate(start))
         backend.navigate(QDir::homePath());
 
@@ -63,6 +68,11 @@ int main(int argc, char *argv[]) {
     engine.rootContext()->setContextProperty("indexer", &indexer);
     engine.rootContext()->setContextProperty("settings", &settings);
     engine.rootContext()->setContextProperty("github", &github);
+    // Answer "Show in folder" from other apps while flair is open. When another
+    // file manager already holds the name this quietly does nothing.
+    auto *fileManager = new FileManager1(&backend, &backend);
+    FileManager1::registerOn(&backend);
+    engine.rootContext()->setContextProperty("fileManagerBus", fileManager);
     engine.load(QUrl("qrc:/Main.qml"));
     if (engine.rootObjects().isEmpty())
         return 1;

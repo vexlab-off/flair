@@ -17,6 +17,7 @@ Rectangle {
 
     signal clicked()
     signal doubleClicked()
+    signal contextRequested(real x, real y)
 
     readonly property var iconFor: ({ dossier: "folder", autre: "file" })
     readonly property color gitColor: git === "M" || git === "R" ? theme.warning
@@ -86,7 +87,11 @@ Rectangle {
         id: mouse
         anchors.fill: parent
         hoverEnabled: true
-        onClicked: row.clicked()
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        onClicked: (mouse) => {
+            row.clicked()
+            if (mouse.button === Qt.RightButton) row.contextRequested(mouse.x, mouse.y)
+        }
         onDoubleClicked: row.doubleClicked()
     }
 }
