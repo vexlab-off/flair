@@ -223,13 +223,48 @@ bool Backend::isHtml(const QString &path) {
     return suffix == "html" || suffix == "htm" || suffix == "xhtml";
 }
 
+QString Backend::mediaKind(const QString &path) {
+    const QFileInfo info(path);
+    if (!info.isFile())
+        return {};
+    const auto kind = TextExtract::category(info);
+    if (kind == "image" && info.suffix().compare("psd", Qt::CaseInsensitive) != 0 &&
+        info.suffix().compare("xcf", Qt::CaseInsensitive) != 0 && info.suffix().compare("kra", Qt::CaseInsensitive) != 0)
+        return "image";
+    if (kind == "audio" || kind == "video")
+        return kind;
+    return {};
+}
+
 void Backend::summarize(const QString &path) {
+    const auto media = mediaKind(path);
+    if (!media.isEmpty()) {
+        // Pictures, songs and videos are shown, not summarized.
+        ++m_previewGeneration;
+        setPanel("preview");
+        const QFileInfo info(path);
+        m_previewTitle = info.fileName();
+        const auto label = media == "image" ? tr("Image") : media == "audio" ? tr("Audio") : tr("Vidéo");
+        m_previewMeta = tr("%1 · %2 · %3")
+                            .arg(label, TextExtract::humanSize(info.size()),
+                                 QLocale(QLocale::French).toString(info.lastModified(), "d MMM yyyy"));
+        m_previewText.clear();
+        m_previewEngine.clear();
+        m_previewHtml.clear();
+        m_previewMedia = info.absoluteFilePath();
+        m_previewMediaKind = media;
+        m_previewMode = "render";
+        emit previewChanged();
+        return;
+    }
     if (!isHtml(path) || !QFileInfo(path).isFile()) {
         summarizeWithAi(path);
         return;
     }
     ++m_previewGeneration;
     setPanel("preview");
+    m_previewMedia.clear();
+    m_previewMediaKind.clear();
     const QFileInfo info(path);
     m_previewTitle = info.fileName();
     m_previewMeta = tr("Page HTML · %1 · se recharge à chaque enregistrement").arg(TextExtract::humanSize(info.size()));
@@ -264,6 +299,8 @@ void Backend::summarizeWithAi(const QString &path) {
     if (!info.exists())
         return;
     m_previewHtml.clear();
+    m_previewMedia.clear();
+    m_previewMediaKind.clear();
     const int generation = ++m_previewGeneration;
     setPanel("preview");
     m_previewTitle = info.fileName().isEmpty() ? path : info.fileName();
@@ -731,6 +768,8 @@ void Backend::explainChanges() {
     const int generation = ++m_previewGeneration;
     setPanel("preview");
     m_previewHtml.clear();
+    m_previewMedia.clear();
+    m_previewMediaKind.clear();
     m_previewTitle = tr("Changements · %1 (%2)").arg(QFileInfo(m_git->top()).fileName(), m_git->branch());
     m_previewMeta = tr("%1 fichiers modifiés%2").arg(m_git->changedCount()).arg(truncated ? tr(" · diff tronqué") : "");
     m_previewText = tr("Lecture du diff…");
@@ -893,6 +932,8 @@ void Backend::summarizeRepo(int row) {
     const int generation = ++m_previewGeneration;
     setPanel("preview");
     m_previewHtml.clear();
+    m_previewMedia.clear();
+    m_previewMediaKind.clear();
     m_previewTitle = fullName;
     m_previewMeta = tr("Dépôt GitHub · pas cloné");
     m_previewEngine.clear();

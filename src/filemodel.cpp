@@ -192,3 +192,7 @@ int FileModel::rowOf(const QString &path) const {
             return i;
     return -1;
 }
+
+QString FileModel::kindOf(const QString &path) const {
+    return TextExtract::category(QFileInfo(path));
+}

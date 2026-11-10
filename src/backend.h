@@ -38,6 +38,9 @@ class Backend : public QObject {
     Q_PROPERTY(QString previewHtml READ previewHtml NOTIFY previewChanged)
     // "render" or "summary", for an HTML preview.
     Q_PROPERTY(QString previewMode READ previewMode WRITE setPreviewMode NOTIFY previewChanged)
+    // A picture, song or video shown in the preview: its path, and which of the three.
+    Q_PROPERTY(QString previewMedia READ previewMedia NOTIFY previewChanged)
+    Q_PROPERTY(QString previewMediaKind READ previewMediaKind NOTIFY previewChanged)
 
     Q_PROPERTY(QVariantList searchResults READ searchResults NOTIFY searchChanged)
     Q_PROPERTY(QString searchQuery READ searchQuery NOTIFY searchChanged)
@@ -80,6 +83,10 @@ public:
     QString previewEngine() const { return m_previewEngine; }
     QString previewHtml() const { return m_previewHtml; }
     QString previewMode() const { return m_previewMode; }
+    QString previewMedia() const { return m_previewMedia; }
+    QString previewMediaKind() const { return m_previewMediaKind; }
+    // "image", "audio" or "video" for files the preview can show, else empty.
+    static QString mediaKind(const QString &path);
     void setPreviewMode(const QString &mode);
     static bool isHtml(const QString &path);
     QVariantList searchResults() const { return m_searchResults; }
@@ -235,6 +242,7 @@ private:
 
     QString m_previewTitle, m_previewMeta, m_previewText, m_previewEngine;
     QString m_previewHtml, m_previewMode = "render";
+    QString m_previewMedia, m_previewMediaKind;
     QFileSystemWatcher m_htmlWatcher;
     QVariantList m_searchResults;
     QString m_searchQuery;

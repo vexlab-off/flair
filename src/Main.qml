@@ -363,8 +363,9 @@ ApplicationWindow {
                                 onClicked: {
                                     list.currentIndex = index
                                     list.forceActiveFocus()
-                                    // A click on a page always shows it.
-                                    if (path.toLowerCase().match(/\.x?html?$/)) backend.summarize(path)
+                                    // A click on a page, picture, song or video always shows it.
+                                    if (path.toLowerCase().match(/\.x?html?$/) || kind === "image" || kind === "audio" || kind === "video")
+                                        backend.summarize(path)
                                 }
                                 onDoubleClicked: backend.activate(index)
                                 onContextRequested: (x, y) => {
@@ -714,7 +715,9 @@ ApplicationWindow {
         interval: 180
         onTriggered: {
             const path = win.selectedPath
-            if (path.toLowerCase().match(/\.x?html?$/) && backend.previewHtml !== path)
+            const kind = files.kindOf(path)
+            if ((path.toLowerCase().match(/\.x?html?$/) && backend.previewHtml !== path)
+                    || ((kind === "image" || kind === "audio" || kind === "video") && backend.previewMedia !== path))
                 backend.summarize(path)
         }
     }

@@ -54,6 +54,7 @@ public:
     Q_INVOKABLE QString pathAt(int row) const;
     Q_INVOKABLE bool isDirAt(int row) const;
     Q_INVOKABLE int rowOf(const QString &path) const;
+    Q_INVOKABLE QString kindOf(const QString &path) const;
     void refresh();
 
 signals:

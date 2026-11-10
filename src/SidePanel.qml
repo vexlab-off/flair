@@ -340,8 +340,17 @@ Rectangle {
                         }
                     }
 
+                    MediaPreview {
+                        visible: backend.previewMediaKind !== "" && backend.panel === "preview"
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        Layout.topMargin: 6
+                        path: backend.previewMediaKind !== "" ? backend.previewMedia : ""
+                        kind: backend.previewMediaKind
+                    }
+
                     ScrollView {
-                        visible: !panel.rendering
+                        visible: !panel.rendering && backend.previewMediaKind === ""
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         clip: true

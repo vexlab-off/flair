@@ -8,6 +8,8 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickStyle>
+#include <QQuickWindow>
+#include <QTimer>
 #include <QUrl>
 #include <QtWebEngineQuick/qtwebenginequickglobal.h>
 
@@ -33,6 +35,8 @@ int main(int argc, char *argv[]) {
     app.setDesktopFileName("flair");
     app.setWindowIcon(QIcon::fromTheme("flair"));
 
+    // Compact Material controls, so fields and buttons match the dense lists.
+    qputenv("QT_QUICK_CONTROLS_MATERIAL_VARIANT", "Dense");
     QQuickStyle::setStyle("Material");
     // Inter where installed; Qt falls back to the system sans otherwise.
     QFont font("Inter");
@@ -80,9 +84,20 @@ int main(int argc, char *argv[]) {
     // `flair page.html` opens its folder with the page selected and previewed.
     if (QFileInfo(start).isFile()) {
         backend.navigate(start);
-        if (Backend::isHtml(start))
+        if (Backend::isHtml(start) || !Backend::mediaKind(start).isEmpty())
             backend.summarize(QFileInfo(start).absoluteFilePath());
     }
 
+    // Development aid: FLAIR_SNAPSHOT=out.png [FLAIR_SNAPSHOT_DELAY=ms] renders
+    // the window to an image and quits; works offscreen.
+    const auto snapshot = qEnvironmentVariable("FLAIR_SNAPSHOT");
+    if (!snapshot.isEmpty()) {
+        const int delay = qEnvironmentVariableIntValue("FLAIR_SNAPSHOT_DELAY");
+        QTimer::singleShot(delay > 0 ? delay : 2500, &app, [&engine, snapshot] {
+            if (auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().first()))
+                window->grabWindow().save(snapshot);
+            QCoreApplication::quit();
+        });
+    }
     return app.exec();
 }

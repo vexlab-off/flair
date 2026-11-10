@@ -14,5 +14,6 @@
         <file alias="FlairDialog.qml">FlairDialog.qml</file>
         <file alias="FileMenu.qml">FileMenu.qml</file>
         <file alias="Actions.qml">Actions.qml</file>
+        <file alias="MediaPreview.qml">MediaPreview.qml</file>
     </qresource>
 </RCC>
