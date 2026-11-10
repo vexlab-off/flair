@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Flair
+GenericName=Explorateur de fichiers IA
+Comment=Explorateur de fichiers qui résume, cherche par le sens, range et répond avec l'IA
+Exec=flair %f
+Icon=flair
+Terminal=false
+Categories=Utility;FileManager;System;
+MimeType=inode/directory;
+StartupWMClass=flair
