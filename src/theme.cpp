@@ -81,6 +81,53 @@ void Theme::setOverride(const QString &color) {
     emit changed();
 }
 
+void Theme::setMode(const QString &mode) {
+    const QString next = mode == "light" || mode == "dark" ? mode : QString("auto");
+    if (next == m_mode)
+        return;
+    m_mode = next;
+    emit changed();
+}
+
+void Theme::setFolderColor(const QString &color) {
+    const QString next = color.isEmpty() ? QString("accent") : color;
+    if (next == m_folderColor)
+        return;
+    m_folderColor = next;
+    emit changed();
+}
+
+bool Theme::isDark() const {
+    if (m_mode == "light")
+        return false;
+    if (m_mode == "dark")
+        return true;
+    return m_vexDark;
+}
+
+// The Vex colours when they match the mode in use, otherwise a neutral
+// palette of the other brightness.
+QColor Theme::background() const {
+    if (isDark() == m_vexDark)
+        return color("background", isDark() ? "#0e0e10" : "#f6f4f0");
+    return isDark() ? QColor("#121214") : QColor("#f6f4f0");
+}
+
+QColor Theme::text() const {
+    if (isDark() == m_vexDark)
+        return color("foreground", isDark() ? "#ececf0" : "#1d1a17");
+    return isDark() ? QColor("#ececf0") : QColor("#1d1a17");
+}
+
+QColor Theme::readable(const QColor &in) const {
+    if (isDark() || !in.isValid())
+        return in;
+    QColor c = in;
+    for (int i = 0; i < 6 && c.lightnessF() > 0.45; ++i)
+        c = c.darker(118);
+    return c;
+}
+
 void Theme::setLogoStyle(const QString &style) {
     const QString next = style == "sombre" || style == "clair" ? style : QString("plein");
     if (next == m_logoStyle)
@@ -113,22 +160,26 @@ QColor Theme::highlightText() const {
 }
 
 QColor Theme::kindColor(const QString &kind) const {
-    if (kind == "dossier")
-        return highlight();
+    if (kind == "dossier") {
+        if (m_folderColor == "neutral")
+            return textDim();
+        const QColor custom(m_folderColor);
+        return readable(custom.isValid() ? custom : highlight());
+    }
     if (kind == "image")
-        return color("bright_magenta", color("magenta", "#c792ea"));
+        return readable(color("bright_magenta", color("magenta", "#c792ea")));
     if (kind == "video")
-        return color("bright_red", color("red", "#f07178"));
+        return readable(color("bright_red", color("red", "#f07178")));
     if (kind == "audio")
-        return color("bright_yellow", color("yellow", "#ffcb6b"));
+        return readable(color("bright_yellow", color("yellow", "#ffcb6b")));
     if (kind == "code")
-        return color("bright_cyan", color("cyan", "#89ddff"));
+        return readable(color("bright_cyan", color("cyan", "#89ddff")));
     if (kind == "document" || kind == "presentation" || kind == "tableur")
-        return color("bright_blue", color("blue", "#82aaff"));
+        return readable(color("bright_blue", color("blue", "#82aaff")));
     if (kind == "archive")
-        return color("orange", color("yellow", "#f78c6c"));
+        return readable(color("orange", color("yellow", "#f78c6c")));
     if (kind == "installeur")
-        return color("bright_green", color("green", "#c3e88d"));
+        return readable(color("bright_green", color("green", "#c3e88d")));
     return textDim();
 }
 
@@ -140,7 +191,7 @@ QColor Theme::languageColor(const QString &language) const {
         {"Dart", "cyan"},       {"Java", "orange"},     {"Kotlin", "magenta"}, {"Ruby", "red"},
         {"PHP", "magenta"},     {"Nix", "blue"},        {"Vue", "green"},     {"Svelte", "orange"}};
     const auto key = keys.value(language);
-    return key.isEmpty() ? textFaint() : color("bright_" + key, color(key, textDim()));
+    return key.isEmpty() ? textFaint() : readable(color("bright_" + key, color(key, textDim())));
 }
 
 QColor Theme::alpha(const QColor &c, double opacity) const {
@@ -168,6 +219,22 @@ void Theme::reload() {
             m_watcher.addPath(path);
 
     const auto colors = readColors(m_directory + "/theme/colors.toml");
+    bool vexDark = true;
+    {
+        QFile file(m_directory + "/theme/colors.toml");
+        if (file.open(QIODevice::ReadOnly)) {
+            static const QRegularExpression modeLine(R"re(^\s*mode\s*=\s*["'](\w+)["'])re", QRegularExpression::MultilineOption);
+            const auto match = modeLine.match(QString::fromUtf8(file.readAll()));
+            if (match.hasMatch())
+                vexDark = match.captured(1) != "light";
+            else if (colors.contains("background"))
+                vexDark = colors.value("background").lightnessF() < 0.5;
+        }
+    }
+    if (vexDark != m_vexDark) {
+        m_vexDark = vexDark;
+        emit changed();
+    }
     const QString accent = colors.contains("accent") ? colors.value("accent").name() : QString("#FFD60A");
     if (accent.compare(m_accent, Qt::CaseInsensitive) != 0 || colors != m_colors) {
         m_accent = accent;

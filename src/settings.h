@@ -18,6 +18,8 @@ class Settings : public QObject {
     Q_PROPERTY(QString heavyEngine READ heavyEngine WRITE setHeavyEngine NOTIFY changed)
     Q_PROPERTY(QString cloneDirectory READ cloneDirectory WRITE setCloneDirectory NOTIFY changed)
     Q_PROPERTY(QString accentColor READ accentColor WRITE setAccentColor NOTIFY changed)
+    Q_PROPERTY(QString appearanceMode READ appearanceMode WRITE setAppearanceMode NOTIFY changed)
+    Q_PROPERTY(QString folderColor READ folderColor WRITE setFolderColor NOTIFY changed)
     Q_PROPERTY(QString logoStyle READ logoStyle WRITE setLogoStyle NOTIFY changed)
     Q_PROPERTY(bool launcherFollowsAccent READ launcherFollowsAccent WRITE setLauncherFollowsAccent NOTIFY changed)
     Q_PROPERTY(QString editorCommand READ editorCommand WRITE setEditorCommand NOTIFY changed)
@@ -43,6 +45,11 @@ public:
     QString cloneDirectory() const;
     // "theme" to follow Vex, or a #rrggbb colour.
     QString accentColor() const;
+    // "auto" (follows Vex), "light" or "dark".
+    QString appearanceMode() const { return get("appearance/mode", "auto"); }
+    void setAppearanceMode(const QString &v) { put("appearance/mode", v); }
+    QString folderColor() const { return get("appearance/folderColor", "accent"); }
+    void setFolderColor(const QString &v) { put("appearance/folderColor", v); }
     QString logoStyle() const { return get("appearance/logoStyle", "plein"); }
     void setLogoStyle(const QString &v) { put("appearance/logoStyle", v); }
     bool launcherFollowsAccent() const { return get("appearance/launcherIcon", "true") == "true"; }

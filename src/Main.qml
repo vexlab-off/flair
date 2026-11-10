@@ -13,7 +13,7 @@ ApplicationWindow {
     title: backend.view === "github" ? "flair — GitHub" : "flair — " + backend.currentPath
     color: theme.background
 
-    Material.theme: Material.Dark
+    Material.theme: theme.isDark ? Material.Dark : Material.Light
     Material.accent: theme.highlight
     Material.background: theme.surface
     Material.foreground: theme.text

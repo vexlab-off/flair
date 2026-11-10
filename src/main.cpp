@@ -47,12 +47,14 @@ int main(int argc, char *argv[]) {
 
     Theme theme;
     Settings settings;
-    theme.setOverride(settings.accentColor());
-    theme.setLogoStyle(settings.logoStyle());
-    QObject::connect(&settings, &Settings::changed, &theme, [&] {
+    auto applyLook = [&] {
         theme.setOverride(settings.accentColor());
         theme.setLogoStyle(settings.logoStyle());
-    });
+        theme.setMode(settings.appearanceMode());
+        theme.setFolderColor(settings.folderColor());
+    };
+    applyLook();
+    QObject::connect(&settings, &Settings::changed, &theme, applyLook);
     // Keep the launcher's icons (flair and Flair Code) in the current colour
     // and style. Only rewritten when one of the three actually changes.
     QString lastLauncher;

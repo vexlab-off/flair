@@ -30,6 +30,9 @@ class Theme : public QObject {
     Q_PROPERTY(QColor warning READ warning NOTIFY changed)
     // "plein", "sombre" or "clair": how the logo wears the accent.
     Q_PROPERTY(QString logoStyle READ logoStyle NOTIFY changed)
+    // Light or dark: "auto" follows the Vex theme, "light"/"dark" force it.
+    Q_PROPERTY(QString mode READ mode NOTIFY changed)
+    Q_PROPERTY(bool isDark READ isDark NOTIFY changed)
 
 public:
     explicit Theme(const QString &currentDirectory = {}, QObject *parent = nullptr);
@@ -38,17 +41,26 @@ public:
     QString accentForeground() const;
     QColor highlight() const;
     QColor highlightText() const;
-    QColor background() const { return color("background", "#0e0e10"); }
-    QColor sidebar() const { return mix(background(), QColor(Qt::black), 0.25); }
-    QColor surface() const { return mix(background(), text(), 0.035); }
-    QColor raised() const { return mix(background(), text(), 0.07); }
-    QColor line() const { return mix(background(), text(), 0.10); }
-    QColor text() const { return color("foreground", "#ececf0"); }
-    QColor textDim() const { return mix(text(), background(), 0.38); }
-    QColor textFaint() const { return mix(text(), background(), 0.58); }
-    QColor danger() const { return color("bright_red", color("red", "#ff6b6b")); }
-    QColor success() const { return color("bright_green", color("green", "#7fcf8a")); }
-    QColor warning() const { return color("bright_yellow", color("yellow", "#e0b050")); }
+    QColor background() const;
+    QColor sidebar() const { return isDark() ? mix(background(), QColor(Qt::black), 0.25) : mix(background(), text(), 0.045); }
+    QColor surface() const { return isDark() ? mix(background(), text(), 0.035) : mix(background(), QColor(Qt::white), 0.6); }
+    QColor raised() const { return mix(background(), text(), isDark() ? 0.07 : 0.075); }
+    QColor line() const { return mix(background(), text(), isDark() ? 0.10 : 0.13); }
+    QColor text() const;
+    QColor textDim() const { return mix(text(), background(), isDark() ? 0.38 : 0.34); }
+    QColor textFaint() const { return mix(text(), background(), isDark() ? 0.58 : 0.52); }
+    QColor danger() const { return readable(color("bright_red", color("red", "#ff6b6b"))); }
+    QColor success() const { return readable(color("bright_green", color("green", "#7fcf8a"))); }
+    QColor warning() const { return readable(color("bright_yellow", color("yellow", "#e0b050"))); }
+
+    QString mode() const { return m_mode; }
+    void setMode(const QString &mode);
+    // "accent" (default), "neutral", or a #rrggbb colour for folder icons.
+    void setFolderColor(const QString &color);
+    bool isDark() const;
+    // A palette colour made readable on the current background: light
+    // colours are darkened in light mode.
+    Q_INVOKABLE QColor readable(const QColor &color) const;
 
     // Colour for a file category (dossier, image, code…), drawn from the palette.
     Q_INVOKABLE QColor kindColor(const QString &kind) const;
@@ -80,6 +92,9 @@ private:
     QString m_accent = "#FFD60A";
     QColor m_override;
     QString m_logoStyle = "plein";
+    QString m_mode = "auto";
+    QString m_folderColor = "accent";
+    bool m_vexDark = true;
     QHash<QString, QColor> m_colors;
     QFileSystemWatcher m_watcher;
     QTimer m_debounce;

@@ -21,6 +21,8 @@ Popup {
     // Staged values, written back only on save.
     property string accent
     property string logoStyle: "plein"
+    property string mode: "auto"
+    property string folderColor: "accent"
     property string editor
     property var editors: []
     property string htmlMode: 'preview'
@@ -34,6 +36,8 @@ Popup {
 
     onOpened: {
         logoStyle = settings.logoStyle
+        mode = settings.appearanceMode
+        folderColor = settings.folderColor
         launcherToggle.checked = settings.launcherFollowsAccent
         accent = settings.accentColor
         editors = settings.installedEditors()
@@ -55,6 +59,8 @@ Popup {
 
     function save() {
         settings.logoStyle = logoStyle
+        settings.appearanceMode = mode
+        settings.folderColor = folderColor
         settings.launcherFollowsAccent = launcherToggle.checked
         settings.accentColor = accent
         settings.editorCommand = editorField.text
@@ -280,6 +286,53 @@ Popup {
                                     Text { anchors.verticalCenter: parent.verticalCenter; text: "Thème Vex"; color: theme.text; font.pixelSize: 12 }
                                 }
                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: dialog.accent = "theme" }
+                            }
+                        }
+                    }
+
+                    Field {
+                        label: "Mode"
+                        help: "Clair ou sombre, pour flair et Flair Code. « Automatique » suit le thème de Vex."
+                        Row {
+                            spacing: 8
+                            Repeater {
+                                model: [["auto", "Automatique", "sparkle"], ["light", "Clair", "sun"], ["dark", "Sombre", "moon"]]
+                                delegate: Rectangle {
+                                    required property var modelData
+                                    readonly property bool chosen: dialog.mode === modelData[0]
+                                    width: modeRow.implicitWidth + 24; height: 34; radius: 17
+                                    color: chosen ? theme.alpha(theme.highlight, 0.16) : theme.background
+                                    border.color: chosen ? theme.highlight : theme.line
+                                    Row { id: modeRow; anchors.centerIn: parent; spacing: 8
+                                        Icon { anchors.verticalCenter: parent.verticalCenter; name: modelData[2]; size: 15; color: parent.parent.chosen ? theme.highlight : theme.textDim }
+                                        Text { anchors.verticalCenter: parent.verticalCenter; text: modelData[1]; color: theme.text; font.pixelSize: 12 } }
+                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: dialog.mode = modelData[0] }
+                                }
+                            }
+                        }
+                    }
+
+                    Field {
+                        label: "Couleur des dossiers"
+                        help: "La couleur des icônes de dossier, dans flair et dans Flair Code. En mode clair, elle est assombrie pour rester lisible."
+                        Flow {
+                            width: parent.width
+                            spacing: 8
+                            Repeater {
+                                model: [["accent", "Comme l'accent", ""], ["neutral", "Gris", ""], ["#f5b942", "Ambre", "#f5b942"], ["#5c9df5", "Bleu", "#5c9df5"],
+                                        ["#3ecf8e", "Vert", "#3ecf8e"], ["#9b7bff", "Violet", "#9b7bff"], ["#ec5fa6", "Rose", "#ec5fa6"]]
+                                delegate: Rectangle {
+                                    required property var modelData
+                                    readonly property bool chosen: dialog.folderColor === modelData[0]
+                                    width: folderRow.implicitWidth + 22; height: 32; radius: 16
+                                    color: chosen ? theme.alpha(theme.highlight, 0.14) : theme.background
+                                    border.color: chosen ? theme.highlight : theme.line
+                                    Row { id: folderRow; anchors.centerIn: parent; spacing: 8
+                                        Icon { anchors.verticalCenter: parent.verticalCenter; name: "folder"; size: 15
+                                               color: modelData[0] === "accent" ? theme.highlight : modelData[0] === "neutral" ? theme.textDim : modelData[2] }
+                                        Text { anchors.verticalCenter: parent.verticalCenter; text: modelData[1]; color: theme.text; font.pixelSize: 12 } }
+                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: dialog.folderColor = modelData[0] }
+                                }
                             }
                         }
                     }

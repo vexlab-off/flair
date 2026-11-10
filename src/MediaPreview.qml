@@ -47,14 +47,14 @@ Item {
             Layout.fillHeight: true
             radius: 8
             clip: true
-            color: "#1f1f23"
+            color: theme.surface
             Canvas {
                 anchors.fill: parent
                 onPaint: {
                     const ctx = getContext("2d")
                     for (let y = 0; y < height; y += 10)
                         for (let x = 0; x < width; x += 10) {
-                            ctx.fillStyle = ((x + y) / 10) % 2 === 0 ? "#2a2a2e" : "#1f1f23"
+                            ctx.fillStyle = ((x + y) / 10) % 2 === 0 ? theme.raised : theme.surface
                             ctx.fillRect(x, y, 10, 10)
                         }
                 }
