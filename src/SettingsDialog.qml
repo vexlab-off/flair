@@ -20,6 +20,7 @@ Popup {
 
     // Staged values, written back only on save.
     property string accent
+    property string logoStyle: "plein"
     property string editor
     property var editors: []
     property string htmlMode: 'preview'
@@ -32,6 +33,8 @@ Popup {
     ]
 
     onOpened: {
+        logoStyle = settings.logoStyle
+        launcherToggle.checked = settings.launcherFollowsAccent
         accent = settings.accentColor
         editors = settings.installedEditors()
         editor = settings.editorCommand
@@ -51,6 +54,8 @@ Popup {
     }
 
     function save() {
+        settings.logoStyle = logoStyle
+        settings.launcherFollowsAccent = launcherToggle.checked
         settings.accentColor = accent
         settings.editorCommand = editorField.text
         settings.htmlOpenMode = htmlMode
@@ -277,6 +282,45 @@ Popup {
                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: dialog.accent = "theme" }
                             }
                         }
+                    }
+
+                    Field {
+                        label: "Style du logo"
+                        help: "Comment le logo porte la couleur d'accent, dans flair, dans Flair Code et dans le lanceur."
+                        Row {
+                            spacing: 10
+                            Repeater {
+                                model: [["plein", "Plein", "La tuile en couleur"], ["sombre", "Sombre", "Tuile noire, dessin en couleur"], ["clair", "Clair", "Tuile claire, dessin en couleur"]]
+                                delegate: Rectangle {
+                                    required property var modelData
+                                    readonly property bool chosen: dialog.logoStyle === modelData[0]
+                                    width: 150
+                                    height: 120
+                                    radius: 12
+                                    color: chosen ? theme.alpha(theme.highlight, 0.1) : theme.background
+                                    border.color: chosen ? theme.highlight : theme.line
+                                    border.width: chosen ? 2 : 1
+                                    Column {
+                                        anchors.centerIn: parent
+                                        spacing: 8
+                                        Row {
+                                            anchors.horizontalCenter: parent.horizontalCenter
+                                            spacing: 8
+                                            Logo { size: 44; variant: modelData[0] }
+                                            FlairCodeMark { size: 44; variant: modelData[0] }
+                                        }
+                                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: modelData[1]; color: theme.text; font.pixelSize: 12; font.weight: Font.DemiBold }
+                                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: modelData[2]; color: theme.textDim; font.pixelSize: 10 }
+                                    }
+                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: dialog.logoStyle = modelData[0] }
+                                }
+                            }
+                        }
+                    }
+                    Toggle {
+                        id: launcherToggle
+                        label: "Le logo du lanceur suit la couleur"
+                        help: "Les icônes de flair et de Flair Code dans Super+Espace prennent la couleur et le style choisis ici."
                     }
                 }
 
@@ -525,10 +569,8 @@ Popup {
                 font.pixelSize: 12
             }
             Button { text: "Annuler"; flat: true; onClicked: dialog.close() }
-            Button {
+            PrimaryButton {
                 text: "Enregistrer"
-                highlighted: true
-                Material.accent: dialog.accent === "theme" || dialog.accent === "" ? theme.highlight : dialog.accent
                 onClicked: dialog.save()
             }
         }

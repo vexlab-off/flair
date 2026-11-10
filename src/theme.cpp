@@ -1,6 +1,8 @@
 // Theme watching follows Korcut (MIT, David Heinemeier Hansson).
 #include "theme.h"
 
+#include "launcher.h"
+
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -77,6 +79,21 @@ void Theme::setOverride(const QString &color) {
         return;
     m_override = next;
     emit changed();
+}
+
+void Theme::setLogoStyle(const QString &style) {
+    const QString next = style == "sombre" || style == "clair" ? style : QString("plein");
+    if (next == m_logoStyle)
+        return;
+    m_logoStyle = next;
+    emit changed();
+}
+
+QVariantMap Theme::logoColors(const QString &app, const QString &styleIn) const {
+    const auto style = styleIn.isEmpty() ? m_logoStyle : styleIn;
+    const auto c = app == "flaircode" ? LauncherIcons::codeColors(highlight(), style)
+                                      : LauncherIcons::flairColors(highlight(), style);
+    return {{"tile", c.tile}, {"back", c.back}, {"front", c.front}, {"spark", c.spark}};
 }
 
 QColor Theme::highlight() const {

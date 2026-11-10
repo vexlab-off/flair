@@ -18,6 +18,8 @@ class Settings : public QObject {
     Q_PROPERTY(QString heavyEngine READ heavyEngine WRITE setHeavyEngine NOTIFY changed)
     Q_PROPERTY(QString cloneDirectory READ cloneDirectory WRITE setCloneDirectory NOTIFY changed)
     Q_PROPERTY(QString accentColor READ accentColor WRITE setAccentColor NOTIFY changed)
+    Q_PROPERTY(QString logoStyle READ logoStyle WRITE setLogoStyle NOTIFY changed)
+    Q_PROPERTY(bool launcherFollowsAccent READ launcherFollowsAccent WRITE setLauncherFollowsAccent NOTIFY changed)
     Q_PROPERTY(QString editorCommand READ editorCommand WRITE setEditorCommand NOTIFY changed)
     // What Enter does on an HTML file: "preview", "editor" or "browser".
     Q_PROPERTY(QString htmlOpenMode READ htmlOpenMode WRITE setHtmlOpenMode NOTIFY changed)
@@ -41,6 +43,10 @@ public:
     QString cloneDirectory() const;
     // "theme" to follow Vex, or a #rrggbb colour.
     QString accentColor() const;
+    QString logoStyle() const { return get("appearance/logoStyle", "plein"); }
+    void setLogoStyle(const QString &v) { put("appearance/logoStyle", v); }
+    bool launcherFollowsAccent() const { return get("appearance/launcherIcon", "true") == "true"; }
+    void setLauncherFollowsAccent(bool v) { put("appearance/launcherIcon", v ? "true" : "false"); }
     // The program files open in: a command name such as code, codium or zed.
     QString editorCommand() const;
     QString htmlOpenMode() const;

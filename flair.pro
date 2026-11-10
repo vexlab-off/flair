@@ -12,6 +12,7 @@ HEADERS += \
     src/github.h \
     src/gitinfo.h \
     src/indexer.h \
+    src/launcher.h \
     src/plan.h \
     src/settings.h \
     src/textextract.h \
@@ -27,6 +28,7 @@ SOURCES += \
     src/github.cpp \
     src/gitinfo.cpp \
     src/indexer.cpp \
+    src/launcher.cpp \
     src/plan.cpp \
     src/settings.cpp \
     src/textextract.cpp \

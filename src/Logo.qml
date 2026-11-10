@@ -7,11 +7,13 @@ import QtQuick.Shapes
 Item {
     id: logo
     property real size: 28
-    property color tile: theme.highlight
-
-    readonly property color back: Qt.darker(tile, 1.5)
-    readonly property color ink: "#1b120b"
-    readonly property color spark: "#fff3e8"
+    // Empty: the style chosen in the settings; set it to preview another.
+    property string variant: ""
+    readonly property var colors: (theme.highlight, theme.logoStyle, theme.logoColors("flair", variant))
+    readonly property color tile: colors.tile
+    readonly property color back: colors.back
+    readonly property color ink: colors.front
+    readonly property color spark: colors.spark
 
     implicitWidth: size
     implicitHeight: size

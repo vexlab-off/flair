@@ -21,6 +21,7 @@
 #include "gitinfo.h"
 #include "indexer.h"
 #include "settings.h"
+#include "launcher.h"
 #include "theme.h"
 
 int main(int argc, char *argv[]) {
@@ -47,7 +48,25 @@ int main(int argc, char *argv[]) {
     Theme theme;
     Settings settings;
     theme.setOverride(settings.accentColor());
-    QObject::connect(&settings, &Settings::changed, &theme, [&] { theme.setOverride(settings.accentColor()); });
+    theme.setLogoStyle(settings.logoStyle());
+    QObject::connect(&settings, &Settings::changed, &theme, [&] {
+        theme.setOverride(settings.accentColor());
+        theme.setLogoStyle(settings.logoStyle());
+    });
+    // Keep the launcher's icons (flair and Flair Code) in the current colour
+    // and style. Only rewritten when one of the three actually changes.
+    QString lastLauncher;
+    auto updateLauncher = [&] {
+        const auto key = QString("%1|%2|%3").arg(theme.highlight().name(), theme.logoStyle()).arg(settings.launcherFollowsAccent());
+        if (key == lastLauncher)
+            return;
+        lastLauncher = key;
+        LauncherIcons::apply(theme.highlight(), theme.logoStyle(), settings.launcherFollowsAccent(), QDir::homePath());
+    };
+    QObject::connect(&theme, &Theme::changed, &app, updateLauncher);
+    QObject::connect(&settings, &Settings::changed, &app, updateLauncher);
+    if (qEnvironmentVariable("FLAIR_SNAPSHOT").isEmpty())
+        updateLauncher();
     AiClient ai(&settings);
     GitInfo git;
     FileModel files(&git);

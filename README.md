@@ -3,6 +3,9 @@
 Un explorateur de fichiers pour Vex qui lit, cherche, range et répond grâce à l'IA,
 entièrement au clavier.
 
+- **Aperçu des médias** : un clic sur une image l'affiche (dimensions, transparence) ; sur
+  une musique ou une vidéo, un lecteur s'ouvre avec la durée, la résolution et les tags
+  (titre, artiste, album, genre).
 - **Aperçu** : Espace affiche une page HTML rendue (CSS, JavaScript, rechargement
   automatique à chaque enregistrement, zoom, largeur mobile, `F` pour agrandir), et résume
   par l'IA tout le reste (texte, code, PDF). `flair page.html` ouvre directement l'aperçu.
@@ -30,7 +33,10 @@ entièrement au clavier.
   inverser), ou utilise le bouton « Tri » et la touche `O`.
 
 Les fichiers de code portent le vrai logo de leur langage. L'accent est orange par défaut ;
-les réglages proposent d'autres couleurs ou de suivre le thème Vex.
+les réglages proposent d'autres couleurs ou de suivre le thème Vex. Le logo existe en trois
+styles (plein, sombre, clair) et suit la couleur partout, jusqu'aux icônes de flair et de
+Flair Code dans le lanceur (fichiers dans `~/.local/share/applications`, retirés si l'option
+est désactivée).
 
 ## Sécurité des fichiers
 
@@ -117,3 +123,6 @@ bin/build      # build/flair
 bin/test       # tests Qt Test, hors écran
 bin/install    # paquet Arch : lanceur, icône
 ```
+
+`FLAIR_SNAPSHOT=capture.png QT_QPA_PLATFORM=offscreen build/flair chemin` enregistre une image
+de la fenêtre sans l'afficher.

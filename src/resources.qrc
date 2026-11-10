@@ -9,7 +9,9 @@
         <file alias="SettingsDialog.qml">SettingsDialog.qml</file>
         <file alias="Icon.qml">Icon.qml</file>
         <file alias="Logo.qml">Logo.qml</file>
+        <file alias="FlairCodeMark.qml">FlairCodeMark.qml</file>
         <file alias="Keycap.qml">Keycap.qml</file>
+        <file alias="PrimaryButton.qml">PrimaryButton.qml</file>
         <file alias="brands.js">brands.js</file>
         <file alias="FlairDialog.qml">FlairDialog.qml</file>
         <file alias="FileMenu.qml">FileMenu.qml</file>

@@ -612,10 +612,8 @@ Rectangle {
                         visible: planList.count > 0
                         Layout.fillWidth: true
                         spacing: 8
-                        Button {
+                        PrimaryButton {
                             text: "Appliquer " + planList.count + " actions"
-                            highlighted: true
-                            Material.accent: theme.highlight
                             onClicked: backend.applyPlan()
                         }
                         Button {

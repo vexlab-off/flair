@@ -28,6 +28,8 @@ class Theme : public QObject {
     Q_PROPERTY(QColor danger READ danger NOTIFY changed)
     Q_PROPERTY(QColor success READ success NOTIFY changed)
     Q_PROPERTY(QColor warning READ warning NOTIFY changed)
+    // "plein", "sombre" or "clair": how the logo wears the accent.
+    Q_PROPERTY(QString logoStyle READ logoStyle NOTIFY changed)
 
 public:
     explicit Theme(const QString &currentDirectory = {}, QObject *parent = nullptr);
@@ -56,6 +58,11 @@ public:
 
     // A fixed highlight colour chosen in the settings; empty follows the theme.
     void setOverride(const QString &color);
+    QString logoStyle() const { return m_logoStyle; }
+    void setLogoStyle(const QString &style);
+    // {tile, back, front, spark} for "flair" or "flaircode", in a style
+    // (empty: the current one).
+    Q_INVOKABLE QVariantMap logoColors(const QString &app, const QString &style = {}) const;
 
     static QString readAccent(const QString &path);
     static QHash<QString, QColor> readColors(const QString &path);
@@ -72,6 +79,7 @@ private:
     QString m_directory;
     QString m_accent = "#FFD60A";
     QColor m_override;
+    QString m_logoStyle = "plein";
     QHash<QString, QColor> m_colors;
     QFileSystemWatcher m_watcher;
     QTimer m_debounce;

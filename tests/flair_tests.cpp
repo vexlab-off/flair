@@ -11,6 +11,7 @@
 #include "gitinfo.h"
 #include "filemodel.h"
 #include "indexer.h"
+#include "launcher.h"
 #include "plan.h"
 #include "settings.h"
 #include "textextract.h"
@@ -386,6 +387,33 @@ private slots:
         QVERIFY(text.contains("node_modules/"));
         QVERIFY(text.contains(".DS_Store"));
         QVERIFY(!text.contains("__pycache__"));
+    }
+
+    void launcherIconsFollowTheAccent() {
+        QTemporaryDir home, system;
+        touch(system.path() + "/flair.desktop", "[Desktop Entry]\nName=Flair\nIcon=/usr/share/icons/flair.svg\n");
+        LauncherIcons::apply(QColor("#9b7bff"), "sombre", true, home.path(), system.path());
+        QFile entry(home.path() + "/.local/share/applications/flair.desktop");
+        QVERIFY(entry.open(QIODevice::ReadOnly));
+        const auto text = QString::fromUtf8(entry.readAll());
+        entry.close();
+        QVERIFY(text.contains("Icon=" + home.path() + "/.local/share/flair/icons/flair-sombre-9b7bff.svg"));
+        QVERIFY(text.contains("Name=Flair"));
+        QVERIFY(QFileInfo::exists(home.path() + "/.local/share/flair/icons/flair-sombre-9b7bff.svg"));
+        // Flair Code isn't installed in this fake system: no entry for it.
+        QVERIFY(!QFileInfo::exists(home.path() + "/.local/share/applications/flaircode.desktop"));
+        // A new colour replaces the old icon; turning it off removes the override.
+        LauncherIcons::apply(QColor("#3ecf8e"), "plein", true, home.path(), system.path());
+        QVERIFY(!QFileInfo::exists(home.path() + "/.local/share/flair/icons/flair-sombre-9b7bff.svg"));
+        LauncherIcons::apply(QColor("#3ecf8e"), "plein", false, home.path(), system.path());
+        QVERIFY(!QFileInfo::exists(home.path() + "/.local/share/applications/flair.desktop"));
+        // A launcher entry the user wrote is never touched.
+        touch(home.path() + "/.local/share/applications/flair.desktop", "[Desktop Entry]\nName=Mine\n");
+        LauncherIcons::apply(QColor("#3ecf8e"), "plein", true, home.path(), system.path());
+        QFile mine(home.path() + "/.local/share/applications/flair.desktop");
+        QVERIFY(mine.open(QIODevice::ReadOnly));
+        QVERIFY(mine.readAll().contains("Name=Mine"));
+        QVERIFY(LauncherIcons::flairSvg(QColor("#ff8a3d"), "plein").contains("#ff8a3d"));
     }
 
     void recognisesHtml() {

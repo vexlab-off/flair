@@ -66,10 +66,8 @@ Popup {
             BusyIndicator { visible: dialog.working; running: visible; Layout.preferredWidth: 26; Layout.preferredHeight: 26 }
             Item { Layout.fillWidth: true }
             Button { text: "Annuler"; flat: true; enabled: !dialog.working; onClicked: dialog.close() }
-            Button {
+            PrimaryButton {
                 text: dialog.acceptText
-                highlighted: true
-                Material.accent: theme.highlight
                 enabled: dialog.acceptEnabled && !dialog.working
                 onClicked: dialog.accepted()
             }
