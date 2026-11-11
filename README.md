@@ -5,7 +5,7 @@ entièrement au clavier.
 
 ![flair ouvert sur le dossier d'un site : la liste des fichiers et index.html rendu dans l'aperçu](docs/capture.webp)
 
-Une application de [la suite flair](https://vexlab-off.github.io/mon-portfolio/flair/), avec [flair](https://github.com/vexlab-off/flair),
+Une application de [la suite flair](https://vexlab-off.github.io/flair/), avec [flair](https://github.com/vexlab-off/flair),
 [Flair Code](https://github.com/vexlab-off/flaircode) et [Flair Web](https://github.com/vexlab-off/flairweb).
 
 ## Installer
