@@ -1,0 +1,23 @@
+pkgbase = flair
+	pkgdesc = Explorateur de fichiers au clavier qui résume, cherche par le sens, range et répond avec l'IA
+	pkgver = 0.2.0
+	pkgrel = 1
+	url = https://github.com/vexlab-off/flair
+	arch = x86_64
+	arch = aarch64
+	license = MIT
+	makedepends = gcc
+	makedepends = make
+	depends = qt6-base
+	depends = qt6-declarative
+	depends = qt6-webengine
+	depends = qt6-multimedia
+	depends = qt6-wayland
+	depends = git
+	optdepends = poppler: résumer et indexer les PDF
+	optdepends = github-cli: cloner avec gh
+	optdepends = ollama: modèle IA local
+	source = flair-0.2.0.tar.gz::https://github.com/vexlab-off/flair/archive/refs/tags/v0.2.0.tar.gz
+	sha256sums = b2df0aeac17796fa98b6c54fd08a94514f59175179ab2e82ed77bf30eff4d66b
+
+pkgname = flair
