@@ -1,0 +1,54 @@
+# Maintainer: vex <https://github.com/vexlab-off>
+# Paquet de publication : construit depuis l'archive de la version sur GitHub.
+# (pkgbuild/PKGBUILD, lui, construit le dossier local pour bin/install.)
+pkgname=flair
+pkgver=0.2.0
+pkgrel=1
+pkgdesc="Explorateur de fichiers au clavier qui résume, cherche par le sens, range et répond avec l'IA"
+arch=('x86_64' 'aarch64')
+url="https://github.com/vexlab-off/flair"
+license=('MIT')
+depends=('qt6-base' 'qt6-declarative' 'qt6-webengine' 'qt6-multimedia' 'qt6-wayland' 'git')
+optdepends=('poppler: résumer et indexer les PDF'
+            'github-cli: cloner avec gh'
+            'ollama: modèle IA local')
+makedepends=('gcc' 'make')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+  cd "$pkgname-$pkgver"
+  mkdir -p build
+  cd build
+  qmake6 ../flair.pro
+  make
+}
+
+check() {
+  cd "$pkgname-$pkgver"
+  mkdir -p build/tests
+  cd build/tests
+  qmake6 ../../tests/flair_tests.pro
+  make
+  QT_QPA_PLATFORM=offscreen ./flair_tests
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  install -Dm755 build/flair "$pkgdir/usr/bin/flair"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
+  install -Dm644 pkgbuild/flair.desktop "$pkgdir/usr/share/applications/flair.desktop"
+  install -Dm644 pkgbuild/flair.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/flair.svg"
+  for size in 16 24 32 48 64 128 256 512; do
+    install -Dm644 "pkgbuild/icons/flair-$size.png" "$pkgdir/usr/share/icons/hicolor/${size}x${size}/apps/flair.png"
+  done
+  # Flair Image et Flair Vidéo : le même programme dans un autre mode.
+  for app in flair-image flair-video; do
+    install -Dm644 "pkgbuild/$app.desktop" "$pkgdir/usr/share/applications/$app.desktop"
+    install -Dm644 "pkgbuild/$app.svg" "$pkgdir/usr/share/icons/hicolor/scalable/apps/$app.svg"
+    for size in 16 24 32 48 64 128 256 512; do
+      install -Dm644 "pkgbuild/icons/$app-$size.png" "$pkgdir/usr/share/icons/hicolor/${size}x${size}/apps/$app.png"
+    done
+  done
+}

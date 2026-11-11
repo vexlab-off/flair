@@ -3,6 +3,31 @@
 Un explorateur de fichiers pour Vex qui lit, cherche, range et répond grâce à l'IA,
 entièrement au clavier.
 
+![flair ouvert sur le dossier d'un site : la liste des fichiers et index.html rendu dans l'aperçu](docs/capture.webp)
+
+Une application de [la suite flair](https://vexlab-off.github.io/mon-portfolio/flair/), avec [flair](https://github.com/vexlab-off/flair),
+[Flair Code](https://github.com/vexlab-off/flaircode) et [Flair Web](https://github.com/vexlab-off/flairweb).
+
+## Installer
+
+Sur Arch Linux et ses dérivées, avec le paquet de la
+[dernière version](https://github.com/vexlab-off/flair/releases/latest) :
+
+```sh
+sudo pacman -U flair-0.2.0-1-x86_64.pkg.tar.zst
+```
+
+Ou en construisant le paquet soi-même depuis les sources de la version :
+
+```sh
+git clone https://github.com/vexlab-off/flair
+cd flair/packaging/arch
+makepkg -si
+```
+
+Il faut Qt 6 (base, declarative, webengine, multimedia, wayland) et git. En option : poppler (PDF), github-cli, un modèle local (Ollama ou LM Studio).
+
+
 - **Aperçu des médias** : un clic sur une image l'affiche (dimensions, transparence) ; sur
   une musique ou une vidéo, un lecteur s'ouvre avec la durée, la résolution et les tags
   (titre, artiste, album, genre).
@@ -151,3 +176,7 @@ bin/install    # paquet Arch : lanceur, icône
 
 `FLAIR_SNAPSHOT=capture.png QT_QPA_PLATFORM=offscreen build/flair chemin` enregistre une image
 de la fenêtre sans l'afficher.
+
+## Licence
+
+MIT, voir [LICENSE](LICENSE). La suite flair est créée par vex.
