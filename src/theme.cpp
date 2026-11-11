@@ -138,7 +138,7 @@ void Theme::setLogoStyle(const QString &style) {
 
 QVariantMap Theme::logoColors(const QString &app, const QString &styleIn) const {
     const auto style = styleIn.isEmpty() ? m_logoStyle : styleIn;
-    const auto c = app == "flaircode" ? LauncherIcons::codeColors(highlight(), style)
+    const auto c = app == "flaircode" || app == "flairweb" ? LauncherIcons::codeColors(highlight(), style)
                                       : LauncherIcons::flairColors(highlight(), style);
     return {{"tile", c.tile}, {"back", c.back}, {"front", c.front}, {"spark", c.spark}};
 }

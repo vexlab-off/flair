@@ -57,6 +57,21 @@ QString flaircodeSvg(const QColor &accent, const QString &style) {
         .arg(c.tile.name(), c.front.name(), c.spark.name());
 }
 
+QString flairwebSvg(const QColor &accent, const QString &style) {
+    const auto c = codeColors(accent, style);
+    return QString(R"(<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <rect width="256" height="256" rx="60" fill="%1"/>
+  <g fill="none" stroke="%2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="120" cy="140" r="72" stroke-width="22"/>
+    <ellipse cx="120" cy="140" rx="30" ry="72" stroke-width="16"/>
+    <path d="M52 140h136" stroke-width="16"/>
+  </g>
+  <path d="M188 30C191.4 60 202 70.6 232 74C202 77.4 191.4 88 188 118C184.6 88 174 77.4 144 74C174 70.6 184.6 60 188 30z" fill="%3" stroke="%1" stroke-width="18" stroke-linejoin="round" paint-order="stroke"/>
+</svg>
+)")
+        .arg(c.tile.name(), c.front.name(), c.spark.name());
+}
+
 QString imageSvg(const QColor &accent, const QString &style) {
     const auto c = flairColors(accent, style);
     return QString(R"(<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
@@ -84,6 +99,8 @@ QString videoSvg(const QColor &accent, const QString &style) {
 QString svgFor(const QString &app, const QColor &accent, const QString &style) {
     if (app == "flaircode")
         return flaircodeSvg(accent, style);
+    if (app == "flairweb")
+        return flairwebSvg(accent, style);
     if (app == "flair-image")
         return imageSvg(accent, style);
     if (app == "flair-video")
@@ -101,7 +118,7 @@ void apply(const QColor &accent, const QString &style, bool follow, const QStrin
            const QString &systemApplications) {
     const auto iconDir = home + "/.local/share/flair/icons";
     const auto userApplications = home + "/.local/share/applications";
-    for (const auto &app : {QString("flair"), QString("flaircode"), QString("flair-image"), QString("flair-video")}) {
+    for (const auto &app : {QString("flair"), QString("flaircode"), QString("flairweb"), QString("flair-image"), QString("flair-video")}) {
         const auto systemEntry = systemApplications + "/" + app + ".desktop";
         const auto userEntry = userApplications + "/" + app + ".desktop";
         // Only override entries flair itself wrote, never one the user made.
