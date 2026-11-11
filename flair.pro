@@ -13,6 +13,7 @@ HEADERS += \
     src/gitinfo.h \
     src/indexer.h \
     src/launcher.h \
+    src/mediafolder.h \
     src/plan.h \
     src/settings.h \
     src/textextract.h \
@@ -29,6 +30,7 @@ SOURCES += \
     src/gitinfo.cpp \
     src/indexer.cpp \
     src/launcher.cpp \
+    src/mediafolder.cpp \
     src/plan.cpp \
     src/settings.cpp \
     src/textextract.cpp \

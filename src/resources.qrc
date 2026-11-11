@@ -17,5 +17,8 @@
         <file alias="FileMenu.qml">FileMenu.qml</file>
         <file alias="Actions.qml">Actions.qml</file>
         <file alias="MediaPreview.qml">MediaPreview.qml</file>
+        <file alias="AppMark.qml">AppMark.qml</file>
+        <file alias="ImageApp.qml">ImageApp.qml</file>
+        <file alias="VideoApp.qml">VideoApp.qml</file>
     </qresource>
 </RCC>

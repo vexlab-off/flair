@@ -26,4 +26,12 @@ package() {
     install -Dm644 "$startdir/icons/flair-$size.png" "$pkgdir/usr/share/icons/hicolor/${size}x${size}/apps/flair.png"
   done
   install -Dm644 "$startdir/flair.desktop" "$pkgdir/usr/share/applications/flair.desktop"
+  # Flair Image and Flair Vidéo: the same binary in other modes.
+  for app in flair-image flair-video; do
+    install -Dm644 "$startdir/$app.desktop" "$pkgdir/usr/share/applications/$app.desktop"
+    install -Dm644 "$startdir/$app.svg" "$pkgdir/usr/share/icons/hicolor/scalable/apps/$app.svg"
+    for size in 16 24 32 48 64 128 256 512; do
+      install -Dm644 "$startdir/icons/$app-$size.png" "$pkgdir/usr/share/icons/hicolor/${size}x${size}/apps/$app.png"
+    done
+  done
 }

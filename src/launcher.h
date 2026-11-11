@@ -16,6 +16,10 @@ Colors flairColors(const QColor &accent, const QString &style);
 Colors codeColors(const QColor &accent, const QString &style);
 QString flairSvg(const QColor &accent, const QString &style);
 QString flaircodeSvg(const QColor &accent, const QString &style);
+QString imageSvg(const QColor &accent, const QString &style);
+QString videoSvg(const QColor &accent, const QString &style);
+// The SVG for an app id: flair, flaircode, flair-image, flair-video.
+QString svgFor(const QString &app, const QColor &accent, const QString &style);
 
 // Writes the icons and ~/.local/share/applications overrides for each app
 // that is installed, or removes the overrides when `follow` is false.

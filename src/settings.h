@@ -20,6 +20,8 @@ class Settings : public QObject {
     Q_PROPERTY(QString accentColor READ accentColor WRITE setAccentColor NOTIFY changed)
     Q_PROPERTY(QString appearanceMode READ appearanceMode WRITE setAppearanceMode NOTIFY changed)
     Q_PROPERTY(QString folderColor READ folderColor WRITE setFolderColor NOTIFY changed)
+    Q_PROPERTY(bool openImagesInFlair READ openImagesInFlair WRITE setOpenImagesInFlair NOTIFY changed)
+    Q_PROPERTY(bool openVideosInFlair READ openVideosInFlair WRITE setOpenVideosInFlair NOTIFY changed)
     Q_PROPERTY(QString logoStyle READ logoStyle WRITE setLogoStyle NOTIFY changed)
     Q_PROPERTY(bool launcherFollowsAccent READ launcherFollowsAccent WRITE setLauncherFollowsAccent NOTIFY changed)
     Q_PROPERTY(QString editorCommand READ editorCommand WRITE setEditorCommand NOTIFY changed)
@@ -50,6 +52,11 @@ public:
     void setAppearanceMode(const QString &v) { put("appearance/mode", v); }
     QString folderColor() const { return get("appearance/folderColor", "accent"); }
     void setFolderColor(const QString &v) { put("appearance/folderColor", v); }
+    // Pictures open in Flair Image and videos/songs in Flair Vidéo, or in the system's apps.
+    bool openImagesInFlair() const { return get("viewers/images", "true") == "true"; }
+    void setOpenImagesInFlair(bool v) { put("viewers/images", v ? "true" : "false"); }
+    bool openVideosInFlair() const { return get("viewers/videos", "true") == "true"; }
+    void setOpenVideosInFlair(bool v) { put("viewers/videos", v ? "true" : "false"); }
     QString logoStyle() const { return get("appearance/logoStyle", "plein"); }
     void setLogoStyle(const QString &v) { put("appearance/logoStyle", v); }
     bool launcherFollowsAccent() const { return get("appearance/launcherIcon", "true") == "true"; }

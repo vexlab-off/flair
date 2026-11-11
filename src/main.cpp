@@ -22,6 +22,7 @@
 #include "indexer.h"
 #include "settings.h"
 #include "launcher.h"
+#include "mediafolder.h"
 #include "theme.h"
 
 int main(int argc, char *argv[]) {
@@ -29,12 +30,23 @@ int main(int argc, char *argv[]) {
     QtWebEngineQuick::initialize();
     QGuiApplication app(argc, argv);
     app.setApplicationName("flair");
-    app.setApplicationVersion("0.1.0");
+    app.setApplicationVersion("0.2.0");
 
-    // Matches the window to flair.desktop, so the compositor (Wayland app_id)
-    // and the launcher pick up the installed icon.
-    app.setDesktopFileName("flair");
-    app.setWindowIcon(QIcon::fromTheme("flair"));
+    // The same binary is three apps: the explorer, Flair Image (--image) and
+    // Flair Vidéo (--video), each with its own window, launcher entry and icon.
+    QStringList args = app.arguments().mid(1);
+    QString viewer;
+    if (args.removeAll("--image"))
+        viewer = "image";
+    else if (args.removeAll("--video"))
+        viewer = "video";
+    args.removeAll("--dbus");
+
+    // Matches the window to its .desktop file, so the compositor (Wayland
+    // app_id) and the launcher pick up the installed icon.
+    const QString appId = viewer == "image" ? "flair-image" : viewer == "video" ? "flair-video" : "flair";
+    app.setDesktopFileName(appId);
+    app.setWindowIcon(QIcon::fromTheme(appId));
 
     // Compact Material controls, so fields and buttons match the dense lists.
     qputenv("QT_QUICK_CONTROLS_MATERIAL_VARIANT", "Dense");
@@ -69,6 +81,35 @@ int main(int argc, char *argv[]) {
     QObject::connect(&settings, &Settings::changed, &app, updateLauncher);
     if (qEnvironmentVariable("FLAIR_SNAPSHOT").isEmpty())
         updateLauncher();
+
+    // Development aid: FLAIR_SNAPSHOT=out.png [FLAIR_SNAPSHOT_DELAY=ms] renders
+    // the window to an image and quits; works offscreen.
+    auto snapshotLater = [&app](QQmlApplicationEngine &engine) {
+        const auto snapshot = qEnvironmentVariable("FLAIR_SNAPSHOT");
+        if (snapshot.isEmpty())
+            return;
+        const int delay = qEnvironmentVariableIntValue("FLAIR_SNAPSHOT_DELAY");
+        QTimer::singleShot(delay > 0 ? delay : 2500, &app, [&engine, snapshot] {
+            if (auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().first()))
+                window->grabWindow().save(snapshot);
+            QCoreApplication::quit();
+        });
+    };
+
+    if (!viewer.isEmpty()) {
+        MediaFolder folder(viewer);
+        folder.open(args.isEmpty() ? QDir::currentPath() : args.first());
+        QQmlApplicationEngine engine;
+        engine.rootContext()->setContextProperty("theme", &theme);
+        engine.rootContext()->setContextProperty("settings", &settings);
+        engine.rootContext()->setContextProperty("folder", &folder);
+        engine.load(QUrl(viewer == "image" ? "qrc:/ImageApp.qml" : "qrc:/VideoApp.qml"));
+        if (engine.rootObjects().isEmpty())
+            return 1;
+        snapshotLater(engine);
+        return app.exec();
+    }
+
     AiClient ai(&settings);
     GitInfo git;
     FileModel files(&git);
@@ -77,8 +118,6 @@ int main(int argc, char *argv[]) {
     Backend backend(&settings, &ai, &files, &git, &indexer, &github);
 
     // Started by D-Bus for "Show in folder" (--dbus), or with a path or file:// URL.
-    QStringList args = app.arguments().mid(1);
-    args.removeAll("--dbus");
     QString start = args.isEmpty() ? QDir::currentPath() : args.first();
     if (start.startsWith("file://"))
         start = QUrl(start).toLocalFile();
@@ -109,16 +148,6 @@ int main(int argc, char *argv[]) {
             backend.summarize(QFileInfo(start).absoluteFilePath());
     }
 
-    // Development aid: FLAIR_SNAPSHOT=out.png [FLAIR_SNAPSHOT_DELAY=ms] renders
-    // the window to an image and quits; works offscreen.
-    const auto snapshot = qEnvironmentVariable("FLAIR_SNAPSHOT");
-    if (!snapshot.isEmpty()) {
-        const int delay = qEnvironmentVariableIntValue("FLAIR_SNAPSHOT_DELAY");
-        QTimer::singleShot(delay > 0 ? delay : 2500, &app, [&engine, snapshot] {
-            if (auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().first()))
-                window->grabWindow().save(snapshot);
-            QCoreApplication::quit();
-        });
-    }
+    snapshotLater(engine);
     return app.exec();
 }

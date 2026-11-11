@@ -110,6 +110,8 @@ public:
     Q_INVOKABLE void openExternally(const QString &path);
     // Opens a file or folder in the code editor chosen in the settings.
     Q_INVOKABLE void openInEditor(const QString &path);
+    // Opens a picture in Flair Image, or a video or song in Flair Vidéo.
+    Q_INVOKABLE void openInViewer(const QString &path);
     // Whether activating this file sends it to the editor rather than the default app.
     bool opensInEditor(const QString &path) const;
     Q_INVOKABLE void reveal(const QString &path);

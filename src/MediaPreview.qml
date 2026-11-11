@@ -78,8 +78,25 @@ Item {
                 color: theme.textDim
             }
         }
+        RowLayout {
+            Layout.fillWidth: true
+            Text {
+                Layout.fillWidth: true
+                visible: media.kind === "image" && picture.status === Image.Ready
+                text: picture.sourceSize.width + " × " + picture.sourceSize.height + " px"
+                color: theme.textDim
+                font.pixelSize: 12
+                font.features: { "tnum": 1 }
+            }
+            Item { Layout.fillWidth: true; visible: media.kind !== "image" }
+            Button {
+                text: media.kind === "image" ? "Ouvrir dans Flair Image" : "Ouvrir dans Flair Vidéo"
+                flat: true
+                onClicked: { player.pause(); backend.openInViewer(media.path) }
+            }
+        }
         Text {
-            visible: media.kind === "image" && picture.status === Image.Ready
+            visible: false
             text: picture.sourceSize.width + " × " + picture.sourceSize.height + " px"
             color: theme.textDim
             font.pixelSize: 12

@@ -99,6 +99,27 @@ Si un moteur manque, la fenêtre le dit et explique quoi faire.
 | ? | Aide |
 | Q | Quitter |
 
+## Flair Image et Flair Vidéo
+
+Deux applications de la suite, dans le même programme, avec leur entrée dans le lanceur :
+
+- **Flair Image** (`flair --image fichier`) : les images du dossier une à une (← →), zoom
+  à la molette, ajuster / taille réelle (0 / 1), rotation d'affichage (R), diaporama (S),
+  miniatures, informations (I), plein écran (F), corbeille (Suppr, avec confirmation).
+- **Flair Vidéo** (`flair --video fichier`) : vidéos et musique du dossier enchaînées,
+  Espace/K lecture, ← → 5 s, J L 10 s, 0–9 pour sauter, vitesse [ ], boucle (B), liste de
+  lecture (Tab), plein écran (F) ; les contrôles disparaissent pendant la lecture. Pour la
+  musique : titre, artiste, album et genre.
+
+Depuis flair, Entrée ou un double-clic ouvre les images et les vidéos dedans (réglable).
+
+## Mode clair et sombre
+
+Réglages → Apparence : Automatique (suit Vex), Clair ou Sombre, pour flair, Flair Code,
+Flair Image et Flair Vidéo. Les couleurs des types de fichiers et des dossiers sont
+assombries en clair pour rester lisibles ; la couleur des dossiers se choisit (accent, gris
+ou une autre).
+
 ## Clic droit
 
 Sur un fichier ou un dossier : ouvrir, résumer, ouvrir dans l'éditeur ou un terminal,

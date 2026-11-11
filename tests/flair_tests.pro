@@ -5,7 +5,7 @@ TEMPLATE = app
 
 INCLUDEPATH += ../src
 
-HEADERS += ../src/ai.h ../src/backend.h ../src/filemodel.h ../src/github.h ../src/gitinfo.h ../src/indexer.h ../src/launcher.h \
+HEADERS += ../src/ai.h ../src/backend.h ../src/filemodel.h ../src/github.h ../src/gitinfo.h ../src/indexer.h ../src/launcher.h ../src/mediafolder.h \
            ../src/plan.h ../src/settings.h ../src/textextract.h ../src/theme.h
 SOURCES += flair_tests.cpp ../src/ai.cpp ../src/actions.cpp ../src/backend.cpp ../src/filemodel.cpp ../src/github.cpp ../src/gitinfo.cpp \
-           ../src/indexer.cpp ../src/launcher.cpp ../src/plan.cpp ../src/settings.cpp ../src/textextract.cpp ../src/theme.cpp
+           ../src/indexer.cpp ../src/launcher.cpp ../src/mediafolder.cpp ../src/plan.cpp ../src/settings.cpp ../src/textextract.cpp ../src/theme.cpp

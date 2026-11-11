@@ -8,6 +8,7 @@
 #include "settings.h"
 #include "textextract.h"
 
+#include <QCoreApplication>
 #include <QDateTime>
 #include <QDesktopServices>
 #include <QDir>
@@ -141,6 +142,9 @@ void Backend::activate(int row) {
         navigate(path);
     else if (isHtml(path) && m_settings->htmlOpenMode() == "preview")
         summarize(path);
+    else if ((mediaKind(path) == "image" && m_settings->openImagesInFlair()) ||
+             ((mediaKind(path) == "video" || mediaKind(path) == "audio") && m_settings->openVideosInFlair()))
+        openInViewer(path);
     else if (opensInEditor(path))
         openInEditor(path);
     else
@@ -168,6 +172,18 @@ bool Backend::opensInEditor(const QString &path) const {
         return m_settings->htmlOpenMode() == "editor";
     const auto kind = TextExtract::category(info);
     return m_settings->openCodeInEditor() && (kind == "code" || (kind == "texte" && suffix == "md"));
+}
+
+void Backend::openInViewer(const QString &path) {
+    const auto kind = mediaKind(path);
+    if (kind.isEmpty()) {
+        openExternally(path);
+        return;
+    }
+    // Same binary, other mode: its own window, launcher entry and icon.
+    const auto mode = kind == "image" ? QStringLiteral("--image") : QStringLiteral("--video");
+    if (!QProcess::startDetached(QCoreApplication::applicationFilePath(), {mode, path}))
+        setError(tr("Impossible d'ouvrir « %1 ».").arg(QFileInfo(path).fileName()));
 }
 
 void Backend::openInEditor(const QString &path) {

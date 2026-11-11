@@ -12,6 +12,7 @@
 #include "filemodel.h"
 #include "indexer.h"
 #include "launcher.h"
+#include "mediafolder.h"
 #include "plan.h"
 #include "settings.h"
 #include "textextract.h"
@@ -414,6 +415,31 @@ private slots:
         QVERIFY(mine.open(QIODevice::ReadOnly));
         QVERIFY(mine.readAll().contains("Name=Mine"));
         QVERIFY(LauncherIcons::flairSvg(QColor("#ff8a3d"), "plein").contains("#ff8a3d"));
+    }
+
+    void mediaFolderStepsThroughSiblings() {
+        QTemporaryDir dir;
+        touch(dir.path() + "/b 10.png");
+        touch(dir.path() + "/b 2.jpg");
+        touch(dir.path() + "/a.webp");
+        touch(dir.path() + "/notes.txt");
+        touch(dir.path() + "/clip.mp4");
+        touch(dir.path() + "/song.flac");
+        MediaFolder images("image");
+        QVERIFY(images.open(dir.path() + "/b 2.jpg"));
+        QCOMPARE(images.count(), 3); // pictures only, in natural order
+        QCOMPARE(images.index(), 1);
+        images.next();
+        QCOMPARE(images.name(), QString("b 10.png"));
+        images.next(); // wraps around
+        QCOMPARE(images.name(), QString("a.webp"));
+        images.previous();
+        QCOMPARE(images.name(), QString("b 10.png"));
+        MediaFolder videos("video");
+        QVERIFY(videos.open(dir.path()));
+        QCOMPARE(videos.count(), 2); // videos and songs
+        QVERIFY(MediaFolder::matches("image", dir.path() + "/a.webp"));
+        QVERIFY(!MediaFolder::matches("image", dir.path() + "/notes.txt"));
     }
 
     void recognisesHtml() {

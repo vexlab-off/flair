@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=Flair Image
+GenericName=Visionneuse d'images
+Comment=Les images d'un dossier, une à une, avec zoom, rotation et diaporama
+Keywords=image;photo;visionneuse;viewer;picture;
+Exec=flair --image %f
+TryExec=flair
+Icon=/usr/share/icons/hicolor/scalable/apps/flair-image.svg
+Terminal=false
+Categories=Graphics;Viewer;2DGraphics;RasterGraphics;
+MimeType=image/png;image/jpeg;image/gif;image/webp;image/bmp;image/avif;image/tiff;image/x-icon;image/svg+xml;
+StartupWMClass=flair-image
+StartupNotify=true

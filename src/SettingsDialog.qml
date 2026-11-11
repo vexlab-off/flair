@@ -36,6 +36,8 @@ Popup {
 
     onOpened: {
         logoStyle = settings.logoStyle
+        openImages.checked = settings.openImagesInFlair
+        openVideos.checked = settings.openVideosInFlair
         mode = settings.appearanceMode
         folderColor = settings.folderColor
         launcherToggle.checked = settings.launcherFollowsAccent
@@ -59,6 +61,8 @@ Popup {
 
     function save() {
         settings.logoStyle = logoStyle
+        settings.openImagesInFlair = openImages.checked
+        settings.openVideosInFlair = openVideos.checked
         settings.appearanceMode = mode
         settings.folderColor = folderColor
         settings.launcherFollowsAccent = launcherToggle.checked
@@ -416,7 +420,7 @@ Popup {
                 Section {
                     icon: "code"
                     title: "Ouvrir les fichiers"
-                    intro: "Ce qui se passe quand tu appuies sur Entrée ou double-cliques un fichier. Les autres fichiers (images, PDF, vidéos…) s'ouvrent avec l'application par défaut du système. E ouvre n'importe quel fichier ou dossier dans l'éditeur."
+                    intro: "Ce qui se passe quand tu appuies sur Entrée ou double-cliques un fichier. Les autres fichiers (PDF, documents…) s'ouvrent avec l'application par défaut du système. E ouvre n'importe quel fichier ou dossier dans l'éditeur."
 
                     Field {
                         label: "Éditeur de code"
@@ -489,6 +493,16 @@ Popup {
                                 }
                             }
                         }
+                    }
+                    Toggle {
+                        id: openImages
+                        label: "Ouvrir les images dans Flair Image"
+                        help: "La visionneuse de la suite : images du dossier une à une, zoom, rotation, diaporama, plein écran. Désactivé : la visionneuse du système."
+                    }
+                    Toggle {
+                        id: openVideos
+                        label: "Ouvrir les vidéos et la musique dans Flair Vidéo"
+                        help: "Le lecteur de la suite : enchaîne les fichiers du dossier, raccourcis clavier, vitesse, boucle, plein écran. Désactivé : le lecteur du système."
                     }
                     Toggle {
                         id: openCode
