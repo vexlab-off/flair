@@ -1,0 +1,10 @@
+# Maintainer: vex <https://github.com/vexlab-off>
+# Méta-paquet : `pacman -S suite-flair` installe les trois apps de la suite.
+pkgname=suite-flair
+pkgver=2026.11.11
+pkgrel=1
+pkgdesc="La suite flair : flair (fichiers), Flair Code (code) et Flair Web (navigateur)"
+arch=('any')
+url="https://vexlab-off.github.io/flair/"
+license=('MIT')
+depends=('flair' 'flair-code' 'flair-web')
