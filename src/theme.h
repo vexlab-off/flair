@@ -42,13 +42,14 @@ public:
     QColor highlight() const;
     QColor highlightText() const;
     QColor background() const;
-    QColor sidebar() const { return isDark() ? mix(background(), QColor(Qt::black), 0.25) : mix(background(), text(), 0.045); }
-    QColor surface() const { return isDark() ? mix(background(), text(), 0.035) : mix(background(), QColor(Qt::white), 0.6); }
-    QColor raised() const { return mix(background(), text(), isDark() ? 0.07 : 0.075); }
-    QColor line() const { return mix(background(), text(), isDark() ? 0.10 : 0.13); }
+    // Light mode: a warm paper ground, white cards, a slightly deeper sidebar.
+    QColor sidebar() const { return isDark() ? mix(background(), QColor(Qt::black), 0.25) : mix(background(), text(), 0.035); }
+    QColor surface() const { return isDark() ? mix(background(), text(), 0.035) : QColor(Qt::white); }
+    QColor raised() const { return mix(background(), text(), isDark() ? 0.07 : 0.055); }
+    QColor line() const { return mix(background(), text(), isDark() ? 0.10 : 0.09); }
     QColor text() const;
-    QColor textDim() const { return mix(text(), background(), isDark() ? 0.38 : 0.34); }
-    QColor textFaint() const { return mix(text(), background(), isDark() ? 0.58 : 0.52); }
+    QColor textDim() const { return mix(text(), background(), isDark() ? 0.38 : 0.40); }
+    QColor textFaint() const { return mix(text(), background(), isDark() ? 0.58 : 0.56); }
     QColor danger() const { return readable(color("bright_red", color("red", "#ff6b6b"))); }
     QColor success() const { return readable(color("bright_green", color("green", "#7fcf8a"))); }
     QColor warning() const { return readable(color("bright_yellow", color("yellow", "#e0b050"))); }

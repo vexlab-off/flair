@@ -109,14 +109,14 @@ bool Theme::isDark() const {
 // palette of the other brightness.
 QColor Theme::background() const {
     if (isDark() == m_vexDark)
-        return color("background", isDark() ? "#0e0e10" : "#f6f4f0");
-    return isDark() ? QColor("#121214") : QColor("#f6f4f0");
+        return color("background", isDark() ? "#0e0e10" : "#f7f6f3");
+    return isDark() ? QColor("#121214") : QColor("#f7f6f3");
 }
 
 QColor Theme::text() const {
     if (isDark() == m_vexDark)
-        return color("foreground", isDark() ? "#ececf0" : "#1d1a17");
-    return isDark() ? QColor("#ececf0") : QColor("#1d1a17");
+        return color("foreground", isDark() ? "#ececf0" : "#1f1d1a");
+    return isDark() ? QColor("#ececf0") : QColor("#1f1d1a");
 }
 
 QColor Theme::readable(const QColor &in) const {
@@ -163,8 +163,9 @@ QColor Theme::kindColor(const QString &kind) const {
     if (kind == "dossier") {
         if (m_folderColor == "neutral")
             return textDim();
+        // Folders wear the theme colour as is, light or dark.
         const QColor custom(m_folderColor);
-        return readable(custom.isValid() ? custom : highlight());
+        return custom.isValid() ? custom : highlight();
     }
     if (kind == "image")
         return readable(color("bright_magenta", color("magenta", "#c792ea")));

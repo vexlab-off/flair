@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QFileSystemWatcher>
 #include <QSettings>
 #include <QVariantList>
 
@@ -22,6 +23,7 @@ class Settings : public QObject {
     Q_PROPERTY(QString folderColor READ folderColor WRITE setFolderColor NOTIFY changed)
     Q_PROPERTY(bool openImagesInFlair READ openImagesInFlair WRITE setOpenImagesInFlair NOTIFY changed)
     Q_PROPERTY(bool openVideosInFlair READ openVideosInFlair WRITE setOpenVideosInFlair NOTIFY changed)
+    Q_PROPERTY(bool suiteSync READ suiteSync WRITE setSuiteSync NOTIFY changed)
     Q_PROPERTY(QString logoStyle READ logoStyle WRITE setLogoStyle NOTIFY changed)
     Q_PROPERTY(bool launcherFollowsAccent READ launcherFollowsAccent WRITE setLauncherFollowsAccent NOTIFY changed)
     Q_PROPERTY(QString editorCommand READ editorCommand WRITE setEditorCommand NOTIFY changed)
@@ -57,6 +59,10 @@ public:
     void setOpenImagesInFlair(bool v) { put("viewers/images", v ? "true" : "false"); }
     bool openVideosInFlair() const { return get("viewers/videos", "true") == "true"; }
     void setOpenVideosInFlair(bool v) { put("viewers/videos", v ? "true" : "false"); }
+    // Colours shared by the whole suite (flair, Flair Code, Flair Image, Flair
+    // Vidéo). Flair Code reads and writes the same keys while this is on.
+    bool suiteSync() const { return get("appearance/sync", "true") == "true"; }
+    void setSuiteSync(bool v) { put("appearance/sync", v ? "true" : "false"); }
     QString logoStyle() const { return get("appearance/logoStyle", "plein"); }
     void setLogoStyle(const QString &v) { put("appearance/logoStyle", v); }
     bool launcherFollowsAccent() const { return get("appearance/launcherIcon", "true") == "true"; }
@@ -94,4 +100,5 @@ private:
     void put(const QString &key, const QString &value);
 
     QSettings m_settings;
+    QFileSystemWatcher m_watcher;
 };

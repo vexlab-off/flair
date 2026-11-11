@@ -120,6 +120,10 @@ Flair Image et Flair Vidéo. Les couleurs des types de fichiers et des dossiers 
 assombries en clair pour rester lisibles ; la couleur des dossiers se choisit (accent, gris
 ou une autre).
 
+« Synchroniser les couleurs de la suite flair » (activé par défaut, dans flair comme dans
+Flair Code) partage l'accent, le mode, la couleur des dossiers et le style du logo entre les
+quatre applications : un changement dans l'une s'applique aux autres.
+
 ## Clic droit
 
 Sur un fichier ou un dossier : ouvrir, résumer, ouvrir dans l'éditeur ou un terminal,

@@ -12,7 +12,23 @@ static QString defaultFile() {
 }
 
 Settings::Settings(const QString &file, QObject *parent)
-    : QObject(parent), m_settings(file.isEmpty() ? defaultFile() : file, QSettings::IniFormat) {}
+    : QObject(parent), m_settings(file.isEmpty() ? defaultFile() : file, QSettings::IniFormat) {
+    // Flair Code writes the suite's colours here too: pick up its changes.
+    // Saving replaces the file, so the watch is re-armed each time.
+    const auto path = m_settings.fileName();
+    QDir().mkpath(QFileInfo(path).absolutePath());
+    m_watcher.addPath(QFileInfo(path).absolutePath());
+    if (QFileInfo::exists(path))
+        m_watcher.addPath(path);
+    auto reload = [this, path] {
+        if (QFileInfo::exists(path) && !m_watcher.files().contains(path))
+            m_watcher.addPath(path);
+        m_settings.sync();
+        emit changed();
+    };
+    connect(&m_watcher, &QFileSystemWatcher::fileChanged, this, reload);
+    connect(&m_watcher, &QFileSystemWatcher::directoryChanged, this, reload);
+}
 
 QString Settings::get(const QString &key, const QString &fallback) const {
     const auto value = m_settings.value(key).toString().trimmed();

@@ -36,6 +36,7 @@ Popup {
 
     onOpened: {
         logoStyle = settings.logoStyle
+        syncToggle.checked = settings.suiteSync
         openImages.checked = settings.openImagesInFlair
         openVideos.checked = settings.openVideosInFlair
         mode = settings.appearanceMode
@@ -61,6 +62,7 @@ Popup {
 
     function save() {
         settings.logoStyle = logoStyle
+        settings.suiteSync = syncToggle.checked
         settings.openImagesInFlair = openImages.checked
         settings.openVideosInFlair = openVideos.checked
         settings.appearanceMode = mode
@@ -292,6 +294,12 @@ Popup {
                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: dialog.accent = "theme" }
                             }
                         }
+                    }
+
+                    Toggle {
+                        id: syncToggle
+                        label: "Synchroniser les couleurs de la suite flair"
+                        help: "Couleur d'accent, mode clair/sombre, couleur des dossiers et style du logo identiques dans flair, Flair Code, Flair Image et Flair Vidéo. Un changement dans l'une s'applique aux autres."
                     }
 
                     Field {
